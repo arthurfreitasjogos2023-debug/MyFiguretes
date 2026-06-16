@@ -5220,5 +5220,290 @@ function sidebarFilter(q){
 }
 
 </script>
+
+<!-- ═══════════════════════════════════════════════════════
+     EFFECTS ENGINE — 3D · Scroll Reveal · Stars · Parallax
+════════════════════════════════════════════════════════════ -->
+<style>
+/* ── STARS CANVAS ── */
+#fx-stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+
+/* ── MOVABLE NEBULA ── */
+#fx-nebula{position:fixed;width:800px;height:800px;border-radius:50%;pointer-events:none;z-index:1;transition:transform .25s ease;}
+
+/* ── CURSOR GLOW ── */
+#lux-glow{width:520px;height:520px;background:radial-gradient(circle,rgba(99,102,241,.18),transparent 60%);transition:transform .06s linear;z-index:2;}
+
+/* ── SCROLL REVEAL ── */
+.sr{opacity:0;transform:translateY(28px) scale(.97);transition:opacity .65s cubic-bezier(.22,1,.36,1),transform .65s cubic-bezier(.22,1,.36,1);}
+.sr.sl{transform:translateX(-36px);}
+.sr.sr2{transform:translateX(36px);}
+.sr.in{opacity:1!important;transform:none!important;}
+
+/* ── RIPPLE ── */
+.rpl{position:absolute;border-radius:50%;background:rgba(255,255,255,.25);transform:scale(0);animation:rplA .65s linear forwards;pointer-events:none;}
+@keyframes rplA{to{transform:scale(5);opacity:0;}}
+
+/* ── KPI INNER GLOW (segue o mouse) ── */
+.kpi-glow{position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.11) 0%,transparent 65%);opacity:0;transition:opacity .3s;pointer-events:none;z-index:1;}
+
+/* ── LOGO FLOAT + BREATHE ── */
+@keyframes fxFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+@keyframes fxBreathe{0%,100%{box-shadow:0 0 14px rgba(99,102,241,.45),0 6px 18px -4px rgba(99,102,241,.55);}50%{box-shadow:0 0 30px rgba(99,102,241,.8),0 6px 24px -4px rgba(99,102,241,.9);}}
+.logo{animation:fxFloat 4s ease-in-out infinite,fxBreathe 3s ease-in-out infinite;}
+
+/* ── BRAND GLITCH ── */
+@keyframes glitch{
+  0%,85%,100%{clip-path:none;transform:none;text-shadow:none;}
+  86%{clip-path:polygon(0 0,100% 0,100% 34%,0 34%);transform:translate(-3px,1px);text-shadow:-3px 0 #f0f,3px 0 #0ff;}
+  87%{clip-path:polygon(0 0,100% 0,100% 34%,0 34%);transform:translate(3px,-1px);text-shadow:3px 0 #f0f,-3px 0 #0ff;}
+  88%{clip-path:polygon(0 64%,100% 64%,100% 100%,0 100%);transform:translate(3px,1px);text-shadow:-3px 0 #0ff,3px 0 #f0f;}
+  89%{clip-path:polygon(0 64%,100% 64%,100% 100%,0 100%);transform:translate(-3px,-1px);text-shadow:3px 0 #0ff,-3px 0 #f0f;}
+  90%,99%{clip-path:none;transform:none;text-shadow:none;}
+}
+.brand b{display:inline-block;animation:glitch 11s ease-in-out infinite;}
+
+/* ── WINDOW SCAN LINE ── */
+@keyframes scanFx{0%{top:-200px;}100%{top:110%;}}
+.window::after{content:'';position:absolute;left:0;right:0;height:200px;background:linear-gradient(transparent 0%,rgba(255,255,255,.015) 50%,transparent 100%);animation:scanFx 14s linear infinite;pointer-events:none;z-index:3;}
+
+/* ── PERIOD TAB SHINE SWEEP ── */
+.period-tab{position:relative;overflow:hidden;}
+.period-tab::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.1) 50%,transparent 65%);transform:translateX(-130%);transition:transform .5s ease;}
+.period-tab:hover::after,.period-tab.active::after{transform:translateX(130%);}
+
+/* ── NAV ACTIVE INDICATOR (glowing bar) ── */
+.nav-item{position:relative;}
+.nav-item.active::before{content:'';position:absolute;left:0;top:22%;bottom:22%;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,#a5b4fc,#6366f1);box-shadow:0 0 10px rgba(129,140,248,.8);animation:indPulse 2.5s ease-in-out infinite;}
+@keyframes indPulse{0%,100%{opacity:.65;box-shadow:0 0 8px rgba(129,140,248,.6);}50%{opacity:1;box-shadow:0 0 18px rgba(129,140,248,1),0 0 30px rgba(129,140,248,.4);}}
+
+/* ── NAV HOVER PILL (glide) ── */
+#nav-hover-pill{position:absolute;left:4px;right:4px;border-radius:8px;background:rgba(255,255,255,.055);pointer-events:none;transition:top .18s cubic-bezier(.22,1,.36,1),height .18s cubic-bezier(.22,1,.36,1),opacity .15s;opacity:0;z-index:0;}
+
+/* ── SECTION TITLE PULSE ── */
+.section-title::before{animation:stPulse 4s ease-in-out infinite;}
+@keyframes stPulse{0%,100%{opacity:.25;}50%{opacity:.65;box-shadow:0 0 12px rgba(255,255,255,.35);}}
+
+/* ── CHART CARD 3D HOVER ── */
+.chart-card{transition:transform .3s cubic-bezier(.22,1,.36,1),border-color .3s,box-shadow .3s;}
+.chart-card:hover{transform:translateY(-5px) perspective(900px) rotateX(1.5deg);border-color:rgba(255,255,255,.16);box-shadow:0 20px 50px rgba(0,0,0,.5);}
+
+/* ── HISTORY ITEM SLIDE HOVER ── */
+.history-item{transition:transform .2s ease,border-color .2s,padding-left .2s;}
+.history-item:hover{transform:translateX(5px);border-color:rgba(255,255,255,.14);}
+
+/* ── MODAL ENTRANCE ── */
+.modal-overlay.open .modal{animation:modalIn .38s cubic-bezier(.22,1,.36,1);}
+@keyframes modalIn{from{opacity:0;transform:translateY(22px) scale(.94);}to{opacity:1;transform:none;}}
+
+/* ── NUMBER COUNT-UP BOUNCE ── */
+@keyframes numBounce{0%{transform:scale(.7);opacity:0;}65%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+.num-popped{animation:numBounce .55s cubic-bezier(.22,1,.36,1) forwards;}
+
+/* ── SIDE-CARD SHIMMER ── */
+@keyframes scShimmer{0%{background-position:-300% 0;}100%{background-position:300% 0;}}
+.side-card{position:relative;overflow:hidden;}
+.side-card::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.045) 50%,transparent 60%);background-size:300% 100%;animation:scShimmer 7s ease-in-out infinite;pointer-events:none;}
+
+/* ── KPI CARD FLOAT (stagger) ── */
+@keyframes kpiFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+.kpi:nth-child(1){animation:kpiFloat 5s ease-in-out infinite;}
+.kpi:nth-child(2){animation:kpiFloat 5s ease-in-out infinite .6s;}
+.kpi:nth-child(3){animation:kpiFloat 5s ease-in-out infinite 1.2s;}
+.kpi:nth-child(4){animation:kpiFloat 5s ease-in-out infinite 1.8s;}
+
+/* ── ACT-BTN GLOW ON HOVER ── */
+.act-btn::before{content:'';position:absolute;inset:-1px;border-radius:inherit;background:linear-gradient(135deg,var(--ac),transparent 70%);opacity:0;transition:opacity .3s;z-index:0;pointer-events:none;}
+.act-btn:hover::before{opacity:.18;}
+.act-btn{position:relative;}
+.act-btn>*{position:relative;z-index:1;}
+
+/* ── PROGRESS BAR LOADING ── */
+@keyframes fxBar{from{background-position:200% 0;}to{background-position:-200% 0;}}
+.li-progress-bar{background-size:200% 100%;animation:fxBar 2.5s linear infinite;}
+.li-progress-bar:not(.purple):not(.cyan){background:linear-gradient(90deg,#4f46e5,#818cf8,#4f46e5)!important;background-size:200% 100%;}
+.li-progress-bar.purple{background:linear-gradient(90deg,#7c3aed,#a78bfa,#7c3aed)!important;background-size:200% 100%;}
+.li-progress-bar.cyan{background:linear-gradient(90deg,#0891b2,#22d3ee,#0891b2)!important;background-size:200% 100%;}
+
+/* ── TOAST GLOW ── */
+#toast{box-shadow:0 14px 36px -10px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.08);}
+#toast-error{box-shadow:0 14px 36px -10px rgba(239,68,68,.5);}
+</style>
+
+<script>
+(function fxEngine(){
+  /* ── 1. STARS CANVAS ── */
+  var cvs=document.createElement('canvas');
+  cvs.id='fx-stars';
+  document.body.prepend(cvs);
+  var ctx=cvs.getContext('2d');
+  function szCvs(){cvs.width=innerWidth;cvs.height=innerHeight;}
+  szCvs(); window.addEventListener('resize',szCvs);
+  var STARS=Array.from({length:170},function(){
+    return{x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.2+.12,a:Math.random()*.6+.08,ph:Math.random()*6.28,sp:Math.random()*.55+.08};
+  });
+  (function tick(){
+    ctx.clearRect(0,0,cvs.width,cvs.height);
+    var t=Date.now()/1000;
+    STARS.forEach(function(s){
+      var a=s.a*(.6+.4*Math.sin(t*s.sp+s.ph));
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(210,222,255,'+a.toFixed(3)+')';ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  })();
+
+  /* ── 2. MOVABLE NEBULA PARALLAX ── */
+  var neb=document.createElement('div');
+  neb.id='fx-nebula';
+  neb.style.background=[
+    'radial-gradient(circle 60px at center,rgba(255,255,255,.7) 0%,transparent 100%)',
+    'radial-gradient(circle 150px at center,rgba(200,215,255,.3) 0%,transparent 100%)',
+    'radial-gradient(ellipse 400px 340px at center,rgba(130,150,255,.12) 0%,transparent 100%)'
+  ].join(',');
+  document.body.prepend(neb);
+  var bx=0,by=0;
+  function posNeb(){bx=innerWidth*.8-400;by=Math.max(0,innerHeight*.12-400);neb.style.transform='translate('+bx+'px,'+by+'px)';}
+  posNeb(); window.addEventListener('resize',posNeb);
+  document.addEventListener('mousemove',function(e){
+    var px=e.clientX/innerWidth-.5,py=e.clientY/innerHeight-.5;
+    neb.style.transform='translate('+(bx+px*28)+'px,'+(by+py*18)+'px)';
+  });
+
+  /* ── 3. CURSOR GLOW ── */
+  var gEl=document.getElementById('lux-glow');
+  if(gEl)document.addEventListener('mousemove',function(e){
+    gEl.style.transform='translate3d('+(e.clientX-260)+'px,'+(e.clientY-260)+'px,0)';
+  });
+
+  /* ── 4. SCROLL REVEAL ── */
+  var sel='.kpi,.act-btn,.chart-card,.history-item,.loan-item,.credit-item,.pp-row,.section-title';
+  document.querySelectorAll(sel).forEach(function(el,i){
+    el.classList.add('sr');
+    el.style.transitionDelay=(i%8*.08)+'s';
+  });
+  if('IntersectionObserver' in window){
+    var ro=new IntersectionObserver(function(ents){
+      ents.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target);}});
+    },{threshold:.07,rootMargin:'0px 0px -30px 0px'});
+    document.querySelectorAll('.sr').forEach(function(el){ro.observe(el);});
+  } else {
+    document.querySelectorAll('.sr').forEach(function(el){el.classList.add('in');});
+  }
+
+  /* ── 5. 3D TILT KPI CARDS ── */
+  document.querySelectorAll('.kpi').forEach(function(c){
+    var g=document.createElement('div');g.className='kpi-glow';c.appendChild(g);
+    c.addEventListener('mousemove',function(e){
+      var r=c.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+      var rx=((y-r.height/2)/r.height)*-11,ry=((x-r.width/2)/r.width)*11;
+      c.style.transform='perspective(700px) rotateX('+rx+'deg) rotateY('+ry+'deg) translateZ(12px)';
+      c.style.transition='transform .07s ease';
+      c.style.setProperty('--mx',(x/r.width*100)+'%');
+      c.style.setProperty('--my',(y/r.height*100)+'%');
+      g.style.opacity='1';
+    });
+    c.addEventListener('mouseleave',function(){
+      c.style.transform='';c.style.transition='transform .55s cubic-bezier(.22,1,.36,1)';g.style.opacity='0';
+    });
+  });
+
+  /* ── 6. 3D TILT ACTION BUTTONS ── */
+  document.querySelectorAll('.act-btn').forEach(function(b){
+    b.addEventListener('mousemove',function(e){
+      var r=b.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+      var rx=((y-r.height/2)/r.height)*-8,ry=((x-r.width/2)/r.width)*8;
+      b.style.transform='perspective(380px) rotateX('+rx+'deg) rotateY('+ry+'deg) translateY(-2px)';
+      b.style.transition='transform .06s ease';
+    });
+    b.addEventListener('mouseleave',function(){
+      b.style.transform='';b.style.transition='transform .45s cubic-bezier(.22,1,.36,1)';
+    });
+  });
+
+  /* ── 7. RIPPLE ON EVERY BUTTON ── */
+  document.querySelectorAll('button').forEach(function(b){
+    if(b.style.overflow==='visible') return;
+    b.style.overflow='hidden';
+    if(getComputedStyle(b).position==='static') b.style.position='relative';
+    b.addEventListener('click',function(e){
+      var r=b.getBoundingClientRect(),sz=Math.max(r.width,r.height);
+      var rpl=document.createElement('span');rpl.className='rpl';
+      rpl.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+(e.clientX-r.left-sz/2)+'px;top:'+(e.clientY-r.top-sz/2)+'px;';
+      b.appendChild(rpl);setTimeout(function(){rpl.remove();},700);
+    });
+  });
+
+  /* ── 8. NAV HOVER PILL ── */
+  var navEl=document.getElementById('sidebar-nav');
+  if(navEl){
+    navEl.style.position='relative';
+    var pill=document.createElement('div');pill.id='nav-hover-pill';navEl.appendChild(pill);
+    navEl.querySelectorAll('.nav-item').forEach(function(item){
+      item.style.zIndex='1';
+      item.addEventListener('mouseenter',function(){
+        var r=item.getBoundingClientRect(),nr=navEl.getBoundingClientRect();
+        pill.style.top=(r.top-nr.top)+'px';
+        pill.style.height=r.height+'px';
+        pill.style.opacity='1';
+      });
+    });
+    navEl.addEventListener('mouseleave',function(){pill.style.opacity='0';});
+  }
+
+  /* ── 9. MAGNETIC NAV ITEMS ── */
+  document.querySelectorAll('.nav-item').forEach(function(item){
+    item.addEventListener('mousemove',function(e){
+      var r=item.getBoundingClientRect(),x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;
+      item.style.transform='translate('+(x*.09)+'px,'+(y*.13)+'px)';
+    });
+    item.addEventListener('mouseleave',function(){
+      item.style.transform='';item.style.transition='transform .4s cubic-bezier(.22,1,.36,1),background .15s,color .15s';
+    });
+  });
+
+  /* ── 10. NUMBER COUNT-UP NA KPI ── */
+  function countUp(el,target,prefix,suffix,decimals){
+    var dur=1200,start=performance.now();
+    el.classList.add('num-popped');
+    (function up(now){
+      var t=Math.min((now-start)/dur,1),ease=1-Math.pow(1-t,3);
+      var v=ease*target;
+      el.textContent=prefix+(decimals?v.toFixed(decimals):Math.round(v).toLocaleString('pt-BR'))+suffix;
+      if(t<1)requestAnimationFrame(up);
+    })(start);
+  }
+  // Observa KPIs para triggerar o count-up ao aparecer
+  if('IntersectionObserver' in window){
+    var koObs=new IntersectionObserver(function(ents){
+      ents.forEach(function(e){
+        if(!e.isIntersecting) return;
+        var val=e.target.querySelector('.card-value,.kpi-val');
+        if(val&&!val.dataset.counted){
+          val.dataset.counted='1';
+          var txt=val.textContent.replace(/[R$\s.]/g,'').replace(',','.');
+          var num=parseFloat(txt);
+          if(!isNaN(num)&&num>0){
+            var pfx=val.textContent.includes('R$')?'R$ ':'';
+            var sfx='';
+            countUp(val,num,pfx,sfx,txt.includes('.')?2:0);
+          }
+        }
+        koObs.unobserve(e.target);
+      });
+    },{threshold:.5});
+    document.querySelectorAll('.kpi').forEach(function(k){koObs.observe(k);});
+  }
+
+  /* ── 11. PARALLAX NOS CHARTS (scroll) ── */
+  window.addEventListener('scroll',function(){
+    var sy=window.scrollY;
+    document.querySelectorAll('.chart-card').forEach(function(c,i){
+      c.style.transform='translateY('+(sy*(i%2?-.018:.015))+'px)';
+    });
+  },{passive:true});
+
+})();
+</script>
 </body>
 </html>
