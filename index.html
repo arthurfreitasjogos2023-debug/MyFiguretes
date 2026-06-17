@@ -531,6 +531,10 @@ body.album-fs .album-exit{display:inline-flex;}
 </head>
 <body>
 
+<!-- ═══════ PAPER SHADER BG (WebGL) ═══════ -->
+<canvas id="paper-shader-bg" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;display:block;"></canvas>
+<!-- ═══════ END PAPER SHADER BG ═══════ -->
+
 <div class="window">
 <div class="browser-bar">
   <div class="dots"><i></i><i></i><i></i></div>
@@ -541,9 +545,6 @@ body.album-fs .album-exit{display:inline-flex;}
   <div class="url"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>arthur.financeiro</div>
 </div>
 
-<!-- ═══════ PAPER SHADER BG (WebGL) ═══════ -->
-<canvas id="paper-shader-bg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;border-radius:inherit;display:block;"></canvas>
-<!-- ═══════ END PAPER SHADER BG ═══════ -->
 
   <div class="app">
     <aside class="sidebar" id="sidebar">
@@ -5578,7 +5579,9 @@ function sidebarFilter(q){
 body{background:#efefef !important;}
 
 .window{
-  background:transparent !important;
+  position:relative;
+  z-index:1;
+  background:rgba(240,240,240,0.85) !important;
   border:1px solid rgba(0,0,0,.08) !important;
   box-shadow:0 8px 40px rgba(0,0,0,.08) !important;
 }
