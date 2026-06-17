@@ -5680,5 +5680,102 @@ updateNavBadges();
 // Atualiza badges ao voltar para o site
 document.addEventListener('visibilitychange',function(){if(!document.hidden)updateNavBadges();});
 </script>
+
+<!-- ═══════════════ ETHERAL SHADOW EFFECT ═══════════════ -->
+<!-- SVG filter: turbulence → hueRotate (animated) → matrix → displacementMap -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;">
+  <defs>
+    <filter id="etheral-f" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+      <feTurbulence type="turbulence" baseFrequency="0.006 0.006" numOctaves="3" seed="5" result="turb"/>
+      <feColorMatrix type="hueRotate" values="0" in="turb" result="hued" id="etheral-hue-el"/>
+      <feColorMatrix type="matrix"
+        values="0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 28 -14"
+        in="hued" result="alphaMap"/>
+      <feDisplacementMap in="SourceGraphic" in2="alphaMap" scale="110" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="etheral-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="28" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- Etheral shadow wrapper — fixed, behind all content -->
+<div id="etheral-wrap" style="
+  position:fixed;inset:0;pointer-events:none;
+  z-index:-1;overflow:hidden;
+">
+  <!-- main distorted blob -->
+  <div id="etheral-blob" style="
+    position:absolute;
+    width:700px;height:700px;
+    top:45%;left:50%;
+    transform:translate(-50%,-50%) scale(1.15);
+    background:radial-gradient(ellipse at 40% 40%, rgba(120,80,255,0.82) 0%, rgba(60,120,255,0.65) 40%, rgba(30,200,220,0.4) 75%, transparent 100%);
+    mask-image:url('https://framerusercontent.com/images/ceBGguIpUU8luwByxuQz79t7To.png');
+    -webkit-mask-image:url('https://framerusercontent.com/images/ceBGguIpUU8luwByxuQz79t7To.png');
+    mask-size:cover;mask-position:center;
+    -webkit-mask-size:cover;-webkit-mask-position:center;
+    filter:url(#etheral-f);
+    opacity:0.18;
+    will-change:transform;
+  "></div>
+  <!-- secondary smaller blob for depth -->
+  <div id="etheral-blob2" style="
+    position:absolute;
+    width:420px;height:420px;
+    top:22%;left:72%;
+    transform:translate(-50%,-50%) scale(1);
+    background:radial-gradient(ellipse at 55% 45%, rgba(200,100,255,0.7) 0%, rgba(99,102,241,0.55) 45%, rgba(30,80,200,0.3) 80%, transparent 100%);
+    mask-image:url('https://framerusercontent.com/images/ceBGguIpUU8luwByxuQz79t7To.png');
+    -webkit-mask-image:url('https://framerusercontent.com/images/ceBGguIpUU8luwByxuQz79t7To.png');
+    mask-size:cover;mask-position:center;
+    -webkit-mask-size:cover;-webkit-mask-position:center;
+    filter:url(#etheral-f);
+    opacity:0.12;
+    will-change:transform;
+  "></div>
+  <!-- noise texture overlay -->
+  <div id="etheral-noise" style="
+    position:absolute;inset:0;
+    background-image:url('https://framerusercontent.com/images/rR6HYXBrMmX4cRpXfXUOvpvpB0.png');
+    background-size:220px 220px;
+    opacity:0.03;
+    mix-blend-mode:overlay;
+  "></div>
+</div>
+
+<script>
+(function(){
+  var hueEl = document.getElementById('etheral-hue-el');
+  var blob1 = document.getElementById('etheral-blob');
+  var blob2 = document.getElementById('etheral-blob2');
+  var hue = 0;
+  var t = 0;
+
+  function tickEtheral(ts) {
+    t = ts * 0.001; // seconds
+    // hue cycles: speed≈90 → full 360° every 4 seconds
+    hue = (t * 90) % 360;
+    if (hueEl) hueEl.setAttribute('values', hue.toFixed(1));
+
+    // gentle float on the blobs
+    var f1 = Math.sin(t * 0.25) * 18;
+    var f1x = Math.cos(t * 0.18) * 12;
+    var f2 = Math.sin(t * 0.32 + 1.2) * 14;
+    var f2x = Math.cos(t * 0.22 + 0.8) * 10;
+
+    if (blob1) blob1.style.transform = 'translate(calc(-50% + '+f1x+'px), calc(-50% + '+f1+'px)) scale(1.15)';
+    if (blob2) blob2.style.transform = 'translate(calc(-50% + '+f2x+'px), calc(-50% + '+f2+'px)) scale(1)';
+
+    requestAnimationFrame(tickEtheral);
+  }
+  requestAnimationFrame(tickEtheral);
+})();
+</script>
+<!-- ═══════════════ END ETHERAL SHADOW ═══════════════ -->
 </body>
 </html>
