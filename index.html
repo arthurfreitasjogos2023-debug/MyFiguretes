@@ -541,54 +541,9 @@ body.album-fs .album-exit{display:inline-flex;}
   <div class="url"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>arthur.financeiro</div>
 </div>
 
-<!-- ═══════ ETHERAL SHADOW (vanilla port) ═══════ -->
-<!-- SVG filter: feTurbulence → hueRotate → matrix → 2× feDisplacementMap -->
-<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;">
-  <defs>
-    <filter id="esh-f" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
-      <feTurbulence result="undulation" numOctaves="2" baseFrequency="0.0005 0.002" seed="0" type="turbulence"/>
-      <feColorMatrix id="esh-hue" in="undulation" type="hueRotate" values="180"/>
-      <feColorMatrix in="dist" result="circulation" type="matrix"
-        values="4 0 0 0 1
-                4 0 0 0 1
-                4 0 0 0 1
-                1 0 0 0 0"/>
-      <feDisplacementMap in="SourceGraphic" in2="circulation" scale="100" result="dist"/>
-      <feDisplacementMap in="dist" in2="undulation" scale="100" result="output"/>
-    </filter>
-  </defs>
-</svg>
-
-<!-- etheral shadow container — fills the window, behind all content -->
-<div id="esh-root" style="
-  position:absolute;inset:0;
-  pointer-events:none;z-index:0;
-  overflow:hidden;border-radius:inherit;
-">
-  <!-- displacement layer: inset -100px matches displacementScale=100 from the component -->
-  <div id="esh-inner" style="
-    position:absolute;
-    inset:-100px;
-    filter:url(#esh-f) blur(4px);
-  ">
-    <div id="esh-blob" style="
-      background-color:rgba(200,200,200,1);
-      mask-image:url('https://framerusercontent.com/images/ceBGguIpUU8luwByxuQz79t7To.png');
-      -webkit-mask-image:url('https://framerusercontent.com/images/ceBGguIpUU8luwByxuQz79t7To.png');
-      mask-size:cover;mask-position:center;mask-repeat:no-repeat;
-      -webkit-mask-size:cover;-webkit-mask-position:center;
-      width:100%;height:100%;
-    "></div>
-  </div>
-  <!-- noise overlay (opacity/2 = 0.5 from component) -->
-  <div style="
-    position:absolute;inset:0;
-    background-image:url('https://framerusercontent.com/images/g0QcWrxr87K0ufOxIUFBakwYA8.png');
-    background-size:240px;background-repeat:repeat;
-    opacity:0.5;
-  "></div>
-</div>
-<!-- ═══════ END ETHERAL SHADOW ═══════ -->
+<!-- ═══════ PAPER SHADER BG (WebGL) ═══════ -->
+<canvas id="paper-shader-bg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;border-radius:inherit;display:block;"></canvas>
+<!-- ═══════ END PAPER SHADER BG ═══════ -->
 
   <div class="app">
     <aside class="sidebar" id="sidebar">
@@ -5847,26 +5802,124 @@ updateNavBadges();
 document.addEventListener('visibilitychange',function(){if(!document.hidden)updateNavBadges();});
 </script>
 
-<!-- ═══════ ETHERAL SHADOW ANIMATION ═══════ -->
+<!-- ═══════ PAPER SHADER ANIMATION (WebGL) ═══════ -->
 <script>
 (function(){
-  var hueEl = document.getElementById('esh-hue');
-  if (!hueEl) return;
-  // Matches component: mapRange(speed=90, 1,100, 1000,50) = ~146ms → /25 = 5.84s per cycle
-  // 360 degrees / 5840ms = ~0.0616 deg/ms
-  var degPerMs = 360 / 5840;
-  var hue = 180;
-  var last = 0;
-  function tick(ts) {
-    var dt = last ? Math.min(ts - last, 50) : 16;
-    last = ts;
-    hue = (hue + degPerMs * dt) % 360;
-    hueEl.setAttribute('values', hue.toFixed(2));
-    requestAnimationFrame(tick);
+  var canvas=document.getElementById('paper-shader-bg');
+  if(!canvas)return;
+  var gl=canvas.getContext('webgl')||canvas.getContext('experimental-webgl');
+  if(!gl){canvas.style.display='none';return;}
+
+  var vs=[
+    'attribute vec2 a_pos;',
+    'attribute vec2 a_uv;',
+    'uniform float uTime;',
+    'uniform float uInt;',
+    'varying vec2 vUv;',
+    'void main(){',
+    '  vUv=a_uv;',
+    '  vec2 p=a_pos;',
+    '  p.y+=sin(p.x*10.0+uTime)*0.1*uInt;',
+    '  p.x+=cos(p.y*8.0+uTime*1.5)*0.05*uInt;',
+    '  gl_Position=vec4(p,0.0,1.0);',
+    '}'
+  ].join('\n');
+
+  var fs=[
+    'precision mediump float;',
+    'uniform float uTime;',
+    'uniform float uInt;',
+    'uniform vec3 uC1;',
+    'uniform vec3 uC2;',
+    'varying vec2 vUv;',
+    'void main(){',
+    '  vec2 uv=vUv;',
+    '  float n=sin(uv.x*20.0+uTime)*cos(uv.y*15.0+uTime*0.8);',
+    '  n+=sin(uv.x*35.0-uTime*2.0)*cos(uv.y*25.0+uTime*1.2)*0.5;',
+    '  vec3 col=mix(uC1,uC2,n*0.5+0.5);',
+    '  col=mix(col,vec3(1.0),pow(abs(n),2.0)*uInt);',
+    '  float g=1.0-length(uv-0.5)*2.0;',
+    '  g=max(g,0.0);',
+    '  g=pow(g,2.0);',
+    '  gl_FragColor=vec4(col*g,g*0.8);',
+    '}'
+  ].join('\n');
+
+  function mkShader(type,src){
+    var s=gl.createShader(type);
+    gl.shaderSource(s,src);
+    gl.compileShader(s);
+    return s;
   }
-  requestAnimationFrame(tick);
+  var prog=gl.createProgram();
+  gl.attachShader(prog,mkShader(gl.VERTEX_SHADER,vs));
+  gl.attachShader(prog,mkShader(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+
+  // 32×32 subdivided plane in clip space (-1..1)
+  var S=32,pos=[],uvs=[],idx=[];
+  for(var r=0;r<=S;r++)for(var c=0;c<=S;c++){
+    pos.push(c/S*2-1, r/S*2-1);
+    uvs.push(c/S, r/S);
+  }
+  for(var r=0;r<S;r++)for(var c=0;c<S;c++){
+    var a=r*(S+1)+c;
+    idx.push(a,a+1,a+S+1, a+1,a+S+2,a+S+1);
+  }
+
+  function mkBuf(data,attr,size){
+    var b=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);
+    var loc=gl.getAttribLocation(prog,attr);
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0);
+  }
+  mkBuf(pos,'a_pos',2);
+  mkBuf(uvs,'a_uv',2);
+
+  var ib=gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(idx),gl.STATIC_DRAW);
+
+  var uTime=gl.getUniformLocation(prog,'uTime');
+  var uInt=gl.getUniformLocation(prog,'uInt');
+  var uC1=gl.getUniformLocation(prog,'uC1');
+  var uC2=gl.getUniformLocation(prog,'uC2');
+
+  // B&W: #1a1a1a → #ffffff
+  gl.uniform3f(uC1,0.102,0.102,0.102);
+  gl.uniform3f(uC2,1.0,1.0,1.0);
+
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  gl.clearColor(0,0,0,0);
+
+  var count=idx.length, start=performance.now();
+
+  function resize(){
+    var dpr=window.devicePixelRatio||1;
+    var w=canvas.clientWidth*dpr|0;
+    var h=canvas.clientHeight*dpr|0;
+    if(canvas.width!==w||canvas.height!==h){
+      canvas.width=w;canvas.height=h;
+      gl.viewport(0,0,w,h);
+    }
+  }
+
+  function frame(ts){
+    resize();
+    var t=(ts-start)/1000;
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform1f(uTime,t);
+    gl.uniform1f(uInt,1.0+Math.sin(t*2)*0.3);
+    gl.drawElements(gl.TRIANGLES,count,gl.UNSIGNED_SHORT,0);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 })();
 </script>
-<!-- ═══════ END ETHERAL SHADOW ANIMATION ═══════ -->
+<!-- ═══════ END PAPER SHADER ANIMATION ═══════ -->
 </body>
 </html>
