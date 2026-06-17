@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#efefef; --window:rgba(240,240,240,.88); --sidebar:rgba(247,247,247,.92); --panel:#ffffff; --panel-2:#f5f5f5;
+  --bg:#efefef; --window:#f2f2f2; --sidebar:#f7f7f7; --panel:#ffffff; --panel-2:#f5f5f5;
   --line:rgba(0,0,0,.08); --line-soft:rgba(0,0,0,.04);
   --text:#1a1a1a; --muted:#6b7280; --muted-2:#9ca3af;
   --blue:#374151; --blue-2:#1a1a1a;
@@ -298,10 +298,9 @@ body{
 }
 .window{
   position:relative;
-  z-index:1;
-  background:var(--window);
-  border:1px solid rgba(0,0,0,.08);
-  box-shadow:0 8px 40px rgba(0,0,0,.08);
+  background:#f2f2f2 !important;
+  border:1px solid rgba(0,0,0,.08) !important;
+  box-shadow:0 8px 40px rgba(0,0,0,.08) !important;
 }
 ::selection{background:rgba(0,0,0,.12);}
 
@@ -530,9 +529,6 @@ body.album-fs .album-exit{display:inline-flex;}
 </head>
 <body>
 
-<!-- ═══════ PAPER SHADER BG (WebGL) ═══════ -->
-<canvas id="paper-shader-bg" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;display:block;"></canvas>
-<!-- ═══════ END PAPER SHADER BG ═══════ -->
 
 <div class="window">
 <div class="browser-bar">
