@@ -3,204 +3,147 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shader Effect</title>
+<title>Paper Shader</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;overflow:hidden;background:#08080f;}
-
-/* ── EnergyRing (CSS port of the React component) ── */
-.rings{
-  position:fixed;inset:0;
-  display:flex;align-items:center;justify-content:center;
-  pointer-events:none;
-}
-.ring{
-  position:absolute;
-  border-radius:50%;
-  border:1.5px solid rgba(255,87,34,.60);
-  animation:spin 3s linear infinite, pulse 1.3s ease-in-out infinite alternate;
-}
-.ring:nth-child(2){
-  width:62vmin;height:62vmin;
-  border-color:rgba(255,110,50,.42);
-  animation-duration:4.8s,1.9s;
-  animation-delay:-.9s,-.4s;
-}
-.ring:nth-child(3){
-  width:86vmin;height:86vmin;
-  border-color:rgba(255,55,15,.28);
-  animation-duration:6.6s,2.6s;
-  animation-delay:-1.8s,-.8s;
-}
-@keyframes spin{to{transform:rotate(360deg);}}
-@keyframes pulse{to{opacity:.18;border-color:rgba(255,87,34,.08);}}
-
-/* ── Canvas ── */
-canvas{position:fixed;inset:0;width:100%;height:100%;}
+html,body{width:100%;height:100%;overflow:hidden;background:#141418;}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;}
 </style>
 </head>
 <body>
-
 <canvas id="c"></canvas>
-
-<!-- EnergyRings: 3 rings at different radii -->
-<div class="rings">
-  <div class="ring" style="width:40vmin;height:40vmin;"></div>
-  <div class="ring"></div>
-  <div class="ring"></div>
-</div>
-
 <script>
 !function(){
   var c=document.getElementById('c');
 
-  /* ══════════════════════════════════════════════════════════
-     WebGL path — vertex + fragment shaders ported from
-     ShaderPlane (React Three Fiber original)
-  ══════════════════════════════════════════════════════════ */
-  var gl=c.getContext('webgl',{alpha:true,premultipliedAlpha:false})
-       ||c.getContext('experimental-webgl',{alpha:true,premultipliedAlpha:false});
+  /* ══════════════════════════════════════════════════════
+     WebGL — smooth animated dark→white paper gradient
+     Replicates the 21st.dev background-paper-shaders look
+  ══════════════════════════════════════════════════════ */
+  var gl=c.getContext('webgl',{alpha:false})
+       ||c.getContext('experimental-webgl',{alpha:false});
 
   if(gl){
-    /* Vertex shader — same sin/cos wave displacement as original */
-    var VS=[
-      'attribute vec2 a_pos;',
-      'uniform float time;',
-      'uniform float intensity;',
-      'varying vec2 vUv;',
-      'void main(){',
-      '  vUv = a_pos * 0.5 + 0.5;',
-      '  vec2 p = a_pos;',
-      '  p.y += sin(p.x * 10.0 + time) * 0.1 * intensity;',
-      '  p.x += cos(p.y * 8.0  + time * 1.5) * 0.05 * intensity;',
-      '  gl_Position = vec4(p, 0.0, 1.0);',
-      '}'
-    ].join('\n');
+    var VS='attribute vec2 a;varying vec2 v;void main(){v=a*.5+.5;gl_Position=vec4(a,0,1);}';
 
-    /* Fragment shader — exact original noise + color mix + glow */
     var FS=[
       'precision mediump float;',
       'uniform float time;',
-      'uniform float intensity;',
-      'uniform vec3  color1;',
-      'uniform vec3  color2;',
-      'varying vec2  vUv;',
+      'varying vec2 v;',
+
+      /* smooth radial blob helper */
+      'float blob(vec2 uv, vec2 center, float radius, float sharpness){',
+      '  float d=length(uv-center)/radius;',
+      '  return 1.0-smoothstep(0.0,1.0,pow(d,sharpness));',
+      '}',
+
       'void main(){',
-      '  vec2 uv = vUv;',
-      /* animated noise pattern (exact original) */
-      '  float noise  = sin(uv.x*20.0 + time)        * cos(uv.y*15.0 + time*0.8);',
-      '  noise += sin(uv.x*35.0 - time*2.0) * cos(uv.y*25.0 + time*1.2) * 0.5;',
-      /* color mix (exact original) */
-      '  vec3 color = mix(color1, color2, noise*0.5+0.5);',
-      '  color = mix(color, vec3(1.0), pow(abs(noise),2.0)*intensity);',
-      /* glow / circular vignette (exact original) */
-      '  float glow = 1.0 - length(uv-0.5)*2.0;',
-      '  glow = pow(glow, 2.0);',
-      '  gl_FragColor = vec4(color*glow, glow*0.8);',
+      '  vec2 uv=v;',
+      '  float t=time*0.18;', /* very slow */
+
+      /* three animated light blobs — large and very soft */
+      '  vec2 p1=vec2(0.62+sin(t*.42)*.32, 0.75+cos(t*.33)*.24);',
+      '  vec2 p2=vec2(0.35+cos(t*.55)*.28, 0.30+sin(t*.38)*.32);',
+      '  vec2 p3=vec2(0.80+sin(t*.28)*.18, 0.20+cos(t*.50)*.22);',
+
+      '  float b1=blob(uv,p1,0.90,1.3);',  /* main big bright blob  */
+      '  float b2=blob(uv,p2,0.70,1.6)*0.80;', /* secondary blob */
+      '  float b3=blob(uv,p3,0.55,2.0)*0.50;', /* subtle accent */
+
+      '  float bright=clamp(b1+b2+b3,0.0,1.0);',
+
+      /* very subtle noise so it feels organic / paper-like */
+      '  float nx=sin(uv.x*18.0+t*1.2)*cos(uv.y*14.0+t*.9)*0.025;',
+      '  bright=clamp(bright+nx,0.0,1.0);',
+
+      /* dark charcoal (#141418) → warm near-white (#f5f3ef) */
+      '  vec3 dark =vec3(0.078,0.078,0.094);',
+      '  vec3 lit  =vec3(0.961,0.953,0.937);',
+      '  gl_FragColor=vec4(mix(dark,lit,bright),1.0);',
       '}'
     ].join('\n');
 
-    function mkSh(type,src){
-      var sh=gl.createShader(type);
-      gl.shaderSource(sh,src);
-      gl.compileShader(sh);
-      return gl.getShaderParameter(sh,gl.COMPILE_STATUS)?sh:null;
+    function sh(type,src){
+      var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+      return gl.getShaderParameter(s,gl.COMPILE_STATUS)?s:null;
     }
-    var vs=mkSh(gl.VERTEX_SHADER,VS);
-    var fs=mkSh(gl.FRAGMENT_SHADER,FS);
+    var vs=sh(gl.VERTEX_SHADER,VS), fs=sh(gl.FRAGMENT_SHADER,FS);
     if(!vs||!fs){fallback();return;}
 
     var prog=gl.createProgram();
-    gl.attachShader(prog,vs);
-    gl.attachShader(prog,fs);
-    gl.linkProgram(prog);
+    gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);
     if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){fallback();return;}
-
     gl.useProgram(prog);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
 
-    /* 32×32 subdivided plane — same as <planeGeometry args={[2,2,32,32]} /> */
-    var SEG=32, verts=[], idxs=[];
-    for(var iy=0;iy<=SEG;iy++)
-      for(var ix=0;ix<=SEG;ix++)
-        verts.push(-1+ix/SEG*2, -1+iy/SEG*2);
-    for(var iy=0;iy<SEG;iy++)
-      for(var ix=0;ix<SEG;ix++){
-        var a=iy*(SEG+1)+ix,b=a+1,d=a+(SEG+1),e=d+1;
-        idxs.push(a,b,d,b,e,d);
-      }
-
-    var vb=gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER,vb);
-    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(verts),gl.STATIC_DRAW);
-
-    var ib=gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(idxs),gl.STATIC_DRAW);
-
-    var aPos=gl.getAttribLocation(prog,'a_pos');
-    gl.enableVertexAttribArray(aPos);
-    gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
-
+    var buf=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+    var aLoc=gl.getAttribLocation(prog,'a');
+    gl.enableVertexAttribArray(aLoc);
+    gl.vertexAttribPointer(aLoc,2,gl.FLOAT,false,0,0);
     var uTime=gl.getUniformLocation(prog,'time');
-    var uInt =gl.getUniformLocation(prog,'intensity');
-    var uC1  =gl.getUniformLocation(prog,'color1');
-    var uC2  =gl.getUniformLocation(prog,'color2');
 
-    /* color1 = #ff5722 (orange-red)   color2 = #ffffff (white) — exact originals */
-    gl.uniform3f(uC1, 1.000, 0.341, 0.133);
-    gl.uniform3f(uC2, 1.000, 1.000, 1.000);
-
-    var t0=performance.now(), pW=0, pH=0;
+    var t0=performance.now(),pW=0,pH=0;
     (function loop(){
-      var W=innerWidth, H=innerHeight;
+      var W=innerWidth,H=innerHeight;
       if(W!==pW||H!==pH){c.width=pW=W;c.height=pH=H;gl.viewport(0,0,W,H);}
-      var t=(performance.now()-t0)*0.001;
-      gl.clearColor(0,0,0,0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.uniform1f(uTime,t);
-      gl.uniform1f(uInt, 1.0+Math.sin(t*2.0)*0.3);
-      gl.drawElements(gl.TRIANGLES,idxs.length,gl.UNSIGNED_SHORT,0);
+      gl.uniform1f(uTime,(performance.now()-t0)*.001);
+      gl.drawArrays(gl.TRIANGLES,0,6);
       requestAnimationFrame(loop);
     })();
     return;
   }
 
-  /* ══════════════════════════════════════════════════════════
-     2D Canvas fallback — glowing orbs that approximate the
-     shader visually when WebGL is unavailable
-  ══════════════════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════════════════
+     2D Canvas fallback — same visual, no WebGL needed
+  ══════════════════════════════════════════════════════ */
   fallback();
   function fallback(){
     var ctx=c.getContext('2d');
     if(!ctx) return;
-    var t=0, pW=0, pH=0;
+    var t=0,pW=0,pH=0;
+
     (function draw(){
-      var W=innerWidth, H=innerHeight;
+      var W=innerWidth,H=innerHeight;
       if(W!==pW||H!==pH){c.width=pW=W;c.height=pH=H;}
 
-      /* dark background */
-      ctx.fillStyle='#08080f';
+      /* dark base */
+      ctx.fillStyle='#141418';
       ctx.fillRect(0,0,W,H);
 
-      /* three animated glow orbs simulating the shader */
-      var orbs=[
-        {fx:0.5+Math.sin(t*0.40)*0.22, fy:0.5+Math.cos(t*0.30)*0.18, r:0.42, col:'255,87,34',  op:0.70},
-        {fx:0.5+Math.cos(t*0.55)*0.28, fy:0.5+Math.sin(t*0.38)*0.22, r:0.32, col:'255,160,80', op:0.55},
-        {fx:0.5+Math.sin(t*0.28)*0.18, fy:0.5+Math.cos(t*0.48)*0.28, r:0.24, col:'255,230,200',op:0.45},
+      /* three animated soft white blobs */
+      var blobs=[
+        {
+          fx: 0.62+Math.sin(t*0.076)*0.32,
+          fy: 0.75+Math.cos(t*0.059)*0.24,
+          r:  0.92, op: 0.88
+        },
+        {
+          fx: 0.35+Math.cos(t*0.099)*0.28,
+          fy: 0.30+Math.sin(t*0.068)*0.32,
+          r:  0.72, op: 0.70
+        },
+        {
+          fx: 0.80+Math.sin(t*0.050)*0.18,
+          fy: 0.20+Math.cos(t*0.090)*0.22,
+          r:  0.55, op: 0.48
+        }
       ];
-      orbs.forEach(function(o){
-        var cx=o.fx*W, cy=o.fy*H, rad=o.r*Math.min(W,H);
+
+      blobs.forEach(function(b){
+        var cx=b.fx*W, cy=b.fy*H;
+        var rad=b.r*Math.max(W,H)*0.75;
         var g=ctx.createRadialGradient(cx,cy,0,cx,cy,rad);
-        g.addColorStop(0,  'rgba('+o.col+','+o.op+')');
-        g.addColorStop(0.45,'rgba('+o.col+','+(o.op*0.3)+')');
-        g.addColorStop(1,  'rgba('+o.col+',0)');
+        /* warm near-white center → transparent dark edge */
+        g.addColorStop(0,   'rgba(245,241,236,'+b.op+')');
+        g.addColorStop(0.35,'rgba(240,236,230,'+(b.op*0.55)+')');
+        g.addColorStop(0.65,'rgba(200,198,195,'+(b.op*0.18)+')');
+        g.addColorStop(1,   'rgba(20,20,24,0)');
         ctx.fillStyle=g;
         ctx.fillRect(0,0,W,H);
       });
 
-      t+=0.016;
+      t+=1;
       requestAnimationFrame(draw);
     })();
   }
