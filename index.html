@@ -653,9 +653,74 @@ body.album-fs .album-exit{display:inline-flex;}
     for(var i=0;i<els.length;i++) els[i].style.background=col;
   }
 
+  /* LAYER 3 — animated paper background (canvas pixels are immune to Mi Browser dark mode) */
+  function initBg(){
+    var win=document.querySelector('.window');
+    if(!win||document.getElementById('bg-shader')) return;
+
+    win.style.position='relative';
+    var bar=win.querySelector('.browser-bar');
+    var app=win.querySelector('.app');
+    if(bar){bar.style.position='relative';bar.style.zIndex='2';}
+    if(app){app.style.position='relative';app.style.zIndex='2';}
+
+    var c=document.createElement('canvas');
+    c.id='bg-shader';
+    c.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;';
+    win.insertBefore(c,win.firstChild);
+
+    /* main area is transparent so canvas shows as background between cards */
+    document.querySelectorAll('.main').forEach(function(el){el.style.background='transparent';});
+
+    var ctx=c.getContext('2d');
+    var W=0,H=0,prevW=0,prevH=0;
+
+    /* animated blob control points */
+    var blobs=[
+      {ax:0.10,ay:0.18,bx:0.90,by:0.82,vx:0.00060,vy:0.00040,r:0.70,cols:[218,218,220]},
+      {ax:0.80,ay:0.12,bx:0.20,by:0.88,vx:0.00045,vy:0.00070,r:0.65,cols:[228,228,230]},
+      {ax:0.50,ay:0.05,bx:0.50,by:0.95,vx:0.00035,vy:0.00050,r:0.60,cols:[222,222,224]},
+      {ax:0.15,ay:0.80,bx:0.85,by:0.20,vx:0.00055,vy:0.00035,r:0.55,cols:[232,232,234]},
+      {ax:0.70,ay:0.50,bx:0.30,by:0.50,vx:0.00040,vy:0.00060,r:0.50,cols:[215,215,218]},
+    ];
+    var t=0;
+
+    function draw(){
+      if(!c.parentNode) return;
+      W=win.offsetWidth; H=win.offsetHeight;
+      if(W!==prevW||H!==prevH){c.width=prevW=W;c.height=prevH=H;}
+      if(!W||!H){requestAnimationFrame(draw);return;}
+
+      /* base */
+      ctx.fillStyle='#efefef';
+      ctx.fillRect(0,0,W,H);
+
+      /* draw each blob as a radial gradient */
+      blobs.forEach(function(b,i){
+        /* lerp between two anchor points using sine wave */
+        var p=0.5+0.5*Math.sin(t*b.vx*(1+i*0.3));
+        var q=0.5+0.5*Math.cos(t*b.vy*(1+i*0.25));
+        var x=(b.ax*(1-p)+b.bx*p)*W;
+        var y=(b.ay*(1-q)+b.by*q)*H;
+        var rad=b.r*Math.max(W,H)*0.65;
+        var g=ctx.createRadialGradient(x,y,0,x,y,rad);
+        g.addColorStop(0,'rgba('+b.cols[0]+','+b.cols[1]+','+b.cols[2]+',0.55)');
+        g.addColorStop(0.5,'rgba('+b.cols[0]+','+b.cols[1]+','+b.cols[2]+',0.25)');
+        g.addColorStop(1,'rgba(239,239,239,0)');
+        ctx.fillStyle=g;
+        ctx.fillRect(0,0,W,H);
+      });
+
+      t+=1;
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
   /* Run after DOM is parsed */
   document.addEventListener('DOMContentLoaded',function(){
     applyLight();
+    initBg();
     /* Watch for DOM changes (dynamic cards) AND class changes (active tabs/nav) */
     var O=window.MutationObserver||window.WebKitMutationObserver;
     if(O) new O(applyLight).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
