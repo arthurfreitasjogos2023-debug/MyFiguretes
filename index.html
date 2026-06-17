@@ -555,20 +555,23 @@ body.album-fs .album-exit{display:inline-flex;}
         <span class="sidebar-search-cmd">⌘K</span>
       </div>
       <nav class="nav" id="sidebar-nav">
+        <div class="nav-sep">Geral</div>
         <button class="nav-item active" onclick="showPage('geral',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>Visão Geral</button>
         <button class="nav-item" onclick="showPage('resumo',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Resumo</button>
         <button class="nav-item" onclick="showPage('analise',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3.5l2-7 4 14 2-7H21"/></svg>Análise</button>
         <div class="nav-sep">Financeiro</div>
-        <button class="nav-item" onclick="showPage('hist',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Histórico</button>
-        <div class="nav-sep">Planos Dinheiro</div>
+        <button class="nav-item" onclick="showPage('hist',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Histórico<span class="nav-badge" id="badge-hist"></span></button>
+        <button class="nav-item" onclick="showPage('recv',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>A Receber<span class="nav-badge" id="badge-recv"></span></button>
+        <button class="nav-item" onclick="showPage('emp',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M9.5 14s.8 1.5 2.5 1.5 2.5-1.5 2.5-1.5"/></svg>Empréstimos<span class="nav-badge" id="badge-emp"></span></button>
+        <div class="nav-sep">Planos & Notas</div>
         <button class="nav-item" onclick="showPage('notes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/><path d="M14 4v6h6M8 13h8M8 17h6"/></svg>Planos</button>
         <div class="nav-sep">Escola</div>
         <button class="nav-item" onclick="showPage('school',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M5 10v5c0 2 4 4 7 4s7-2 7-4v-5"/><path d="M21 7v6"/></svg>Notas</button>
         <button class="nav-item" onclick="showPage('paracasa',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h2V4a1 1 0 0 1 1-1Z"/><path d="M9 7h6M8 11h8M8 15h5"/></svg>Adicionar para casa</button>
-        <button class="nav-item" onclick="showPage('pendentes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Para casas pendentes</button>
-        <button class="nav-item" onclick="showPage('ia',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.7 5.1L19 9l-5.3 1.9L12 16l-1.7-5.1L5 9l5.3-1.9L12 2Z"/><path d="M5 14l.9 2.6L8.5 18l-2.6.9L5 21.5l-.9-2.6L1.5 18l2.6-1.4L5 14Z"/><path d="M19 14l.9 2.6 2.6 1.4-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-1.4L19 14Z"/></svg>IA</button>
+        <button class="nav-item" onclick="showPage('pendentes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Para casas pendentes<span class="nav-badge" id="badge-hw"></span></button>
+        <button class="nav-item" onclick="showPage('ia',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.7 5.1L19 9l-5.3 1.9L12 16l-1.7-5.1L5 9l5.3-1.9L12 2Z"/><path d="M5 14l.9 2.6L8.5 18l-2.6.9L5 21.5l-.9-2.6L1.5 18l2.6-1.4L5 14Z"/><path d="M19 14l.9 2.6 2.6 1.4-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-1.4L19 14Z"/></svg>IA<span class="nav-badge nav-badge-new">NEW</span></button>
         <div class="nav-sep">Copa Do Mundo</div>
-        <button class="nav-item" onclick="albumGo('album','all',this,'Álbum Copa 2026','Cole figurinhas, veja repetidas, faltantes e negocie')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg>Álbum</button>
+        <button class="nav-item" onclick="albumGo('album','all',this,'Álbum Copa 2026','Cole figurinhas, veja repetidas, faltantes e negocie')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg>Álbum 2026</button>
       </nav>
       <div class="side-card">
         <div class="sc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
@@ -952,7 +955,10 @@ body.album-fs .album-exit{display:inline-flex;}
         </section>
 </div>
 <div class="page" id="page-album" data-title="Álbum Copa 2026" data-sub="Figurinhas, repetidas, faltantes e gastos">
-        <button class="page-back" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Voltar</button>
+        <div class="album-topbar-btn">
+          <button class="hamburger" onclick="openMenu()" style="flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+          <span class="album-topbar-title">🏆 Álbum Copa 2026</span>
+        </div>
         <div class="album-shell">
           <iframe id="albumFrame" title="Álbum Copa 2026" referrerpolicy="no-referrer" srcdoc="&lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;pt-BR&quot;&gt;
@@ -5504,6 +5510,294 @@ function sidebarFilter(q){
   },{passive:true});
 
 })();
+</script>
+
+<!-- ═══════════════════════════════════════════════
+     SHOPALL MENU + THREE.JS SHADER + ALBUM FIXES
+════════════════════════════════════════════════════ -->
+<style>
+/* ── SHOPALL SIDEBAR STYLE ── */
+.sidebar{
+  background:#0d1526 !important;
+  border-right:1px solid rgba(255,255,255,.08) !important;
+  padding:20px 12px 18px !important;
+}
+.brand{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  padding:10px 14px;
+  margin-bottom:16px;
+  gap:10px;
+}
+.brand b{font-size:15px;letter-spacing:-.2px;color:#fff;}
+.logo{
+  background:linear-gradient(135deg,#2563eb,#1d4ed8) !important;
+  border-radius:10px !important;
+  box-shadow:0 0 0 0 rgba(37,99,235,.5) !important;
+  animation:shopLogoBreath 3s ease-in-out infinite !important;
+}
+@keyframes shopLogoBreath{0%,100%{box-shadow:0 0 14px rgba(37,99,235,.5);}50%{box-shadow:0 0 28px rgba(37,99,235,.9),0 0 50px rgba(37,99,235,.35);}}
+
+/* Sidebar search — estilo Shopall */
+.sidebar-search{
+  background:rgba(255,255,255,.05) !important;
+  border:1px solid rgba(255,255,255,.09) !important;
+  border-radius:10px !important;
+  padding:9px 13px !important;
+  margin:0 0 14px !important;
+}
+.sidebar-search input::placeholder{color:#4b5568;}
+
+/* Nav sep — estilo Shopall */
+.nav-sep{
+  margin:14px 4px 4px !important;
+  font-size:9.5px !important;
+  letter-spacing:2px !important;
+  color:#3d4f6a !important;
+  font-weight:700 !important;
+  text-transform:uppercase;
+}
+
+/* Nav item — estilo Shopall */
+.nav-item{
+  padding:9px 10px !important;
+  border-radius:8px !important;
+  color:#7c8fa8 !important;
+  font-size:13.5px !important;
+  font-weight:500 !important;
+  gap:11px !important;
+  transition:background .14s,color .14s,transform .3s !important;
+}
+.nav-item svg{color:inherit;width:17px !important;height:17px !important;}
+.nav-item:hover{
+  background:rgba(37,99,235,.1) !important;
+  color:#c8d8f0 !important;
+}
+.nav-item.active{
+  background:rgba(37,99,235,.18) !important;
+  color:#ffffff !important;
+  font-weight:700 !important;
+  box-shadow:inset 3px 0 0 #2563eb !important;
+  border-radius:0 8px 8px 0 !important;
+}
+.nav-item.active::before{
+  background:linear-gradient(180deg,#60a5fa,#2563eb) !important;
+  box-shadow:0 0 12px rgba(37,99,235,.9) !important;
+}
+
+/* ── NAV BADGE (estilo Shopall — quadradinho azul) ── */
+.nav-badge{
+  margin-left:auto;
+  background:#2563eb;
+  color:#fff;
+  border-radius:6px;
+  padding:2px 7px;
+  font-size:10.5px;
+  font-weight:800;
+  line-height:1.5;
+  flex-shrink:0;
+  display:none;
+  animation:badgePop .4s cubic-bezier(.22,1,.36,1);
+}
+.nav-badge.show{display:inline-flex;align-items:center;}
+.nav-badge-new{
+  background:linear-gradient(135deg,#7c3aed,#4f46e5);
+  display:inline-flex !important;
+  align-items:center;
+  font-size:9px;
+  letter-spacing:.5px;
+  padding:2px 6px;
+}
+@keyframes badgePop{from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+/* ── SIDE-CARD Shopall style ── */
+.side-card{
+  background:rgba(37,99,235,.1) !important;
+  border:1px solid rgba(37,99,235,.25) !important;
+  border-radius:14px !important;
+}
+.side-card p{color:#94a3b8 !important;}
+.sc-ic{background:linear-gradient(135deg,#2563eb,#1d4ed8) !important;box-shadow:0 6px 18px rgba(37,99,235,.5) !important;}
+
+/* ── ALBUM TOPBAR BUTTON ── */
+.album-topbar-btn{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:0 0 18px;
+}
+.album-topbar-title{
+  font-family:var(--display);
+  font-weight:700;
+  font-size:17px;
+  color:#fff;
+  letter-spacing:-.3px;
+}
+#page-album .page-back{display:none !important;}
+
+/* ── THREE.JS CANVAS ── */
+#three-shader-bg{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  z-index:0;
+  opacity:.75;
+}
+</style>
+
+<script>
+/* ── THREE.JS SHADER BACKGROUND ── */
+(function initThree(){
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js';
+  s.onload=function(){
+    var canvas=document.createElement('canvas');
+    canvas.id='three-shader-bg';
+    document.body.prepend(canvas);
+
+    var renderer=new THREE.WebGLRenderer({canvas:canvas,alpha:true,antialias:false});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+    renderer.setSize(innerWidth,innerHeight);
+
+    var scene=new THREE.Scene();
+    var camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,100);
+    camera.position.z=3;
+
+    /* Vertex shader — wave distortion (igual ao código React) */
+    var VS=`
+      uniform float time;
+      uniform float intensity;
+      varying vec2 vUv;
+      void main(){
+        vUv=uv;
+        vec3 pos=position;
+        pos.y+=sin(pos.x*10.0+time)*0.1*intensity;
+        pos.x+=cos(pos.y*8.0+time*1.5)*0.05*intensity;
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(pos,1.0);
+      }`;
+
+    /* Fragment shader — animated noise + glow */
+    var FS=`
+      uniform float time;
+      uniform float intensity;
+      uniform vec3 color1;
+      uniform vec3 color2;
+      varying vec2 vUv;
+      void main(){
+        vec2 uv=vUv;
+        float noise=sin(uv.x*20.0+time)*cos(uv.y*15.0+time*0.8);
+        noise+=sin(uv.x*35.0-time*2.0)*cos(uv.y*25.0+time*1.2)*0.5;
+        vec3 color=mix(color1,color2,noise*0.5+0.5);
+        color=mix(color,vec3(1.0),pow(abs(noise),2.0)*intensity*0.25);
+        float glow=1.0-length(uv-0.5)*2.0;
+        glow=pow(max(glow,0.0),2.0);
+        gl_FragColor=vec4(color*glow,glow*0.55);
+      }`;
+
+    /* Cria planos com shader em posições diferentes */
+    var configs=[
+      {pos:[0,0,0],   c1:'#4f46e5',c2:'#06b6d4',sz:7},
+      {pos:[-2,1.5,-1],c1:'#7c3aed',c2:'#818cf8',sz:4},
+      {pos:[2,-1.5,-1],c1:'#0ea5e9',c2:'#4f46e5',sz:4},
+    ];
+    var meshes=configs.map(function(cfg){
+      var uni={
+        time:{value:0},
+        intensity:{value:1},
+        color1:{value:new THREE.Color(cfg.c1)},
+        color2:{value:new THREE.Color(cfg.c2)}
+      };
+      var geo=new THREE.PlaneGeometry(cfg.sz,cfg.sz,48,48);
+      var mat=new THREE.ShaderMaterial({
+        uniforms:uni,vertexShader:VS,fragmentShader:FS,
+        transparent:true,side:THREE.DoubleSide,depthWrite:false
+      });
+      var m=new THREE.Mesh(geo,mat);
+      m.position.set(cfg.pos[0],cfg.pos[1],cfg.pos[2]);
+      scene.add(m);
+      return{mesh:m,uni:uni};
+    });
+
+    /* Energy rings */
+    function makeRing(r1,r2,color,pos){
+      var g=new THREE.RingGeometry(r1,r2,64);
+      var m=new THREE.MeshBasicMaterial({color:color,transparent:true,opacity:.5,side:THREE.DoubleSide});
+      var mesh=new THREE.Mesh(g,m);
+      mesh.position.set(pos[0],pos[1],pos[2]);
+      scene.add(mesh);
+      return mesh;
+    }
+    var rings=[
+      makeRing(.7,.85,'#6366f1',[1,.5,0]),
+      makeRing(.35,.45,'#22d3ee',[-1,-.5,0]),
+      makeRing(1.1,1.25,'#4f46e5',[0,0,-.5]),
+    ];
+
+    /* Animate loop */
+    var clock=new THREE.Clock();
+    (function tick(){
+      requestAnimationFrame(tick);
+      var t=clock.getElapsedTime();
+      meshes.forEach(function(o,i){
+        o.uni.time.value=t+i*.7;
+        o.uni.intensity.value=1+Math.sin(t*2+i)*0.3;
+        o.mesh.rotation.z=t*.06*(i%2?1:-1);
+      });
+      rings.forEach(function(r,i){
+        r.rotation.z=t*(i%2?1:-1.3)*.8;
+        r.material.opacity=.3+Math.sin(t*3+i)*0.2;
+      });
+      renderer.render(scene,camera);
+    })();
+
+    window.addEventListener('resize',function(){
+      renderer.setSize(innerWidth,innerHeight);
+      camera.aspect=innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+    });
+  };
+  document.head.appendChild(s);
+})();
+
+/* ── BADGE COUNTER (atualiza com dados do localStorage) ── */
+function updateNavBadges(){
+  try{
+    var entries=JSON.parse(localStorage.getItem('entries')||'[]');
+    var loans=JSON.parse(localStorage.getItem('loans')||'[]');
+    var recvs=JSON.parse(localStorage.getItem('recvs')||'[]');
+    var hws=JSON.parse(localStorage.getItem('homeworks')||'[]');
+
+    function setBadge(id,n){
+      var el=document.getElementById(id);
+      if(!el) return;
+      if(n>0){el.textContent=n>99?'99+':n;el.classList.add('show');}
+      else{el.classList.remove('show');}
+    }
+
+    // Histórico: entradas recentes (últimas 24h)
+    var now=Date.now(), day=86400000;
+    var recent=entries.filter(function(e){return now-(e.date||0)<day;}).length;
+    setBadge('badge-hist',recent);
+
+    // A Receber pendentes
+    var pendRecv=recvs.filter(function(r){return !r.done;}).length;
+    setBadge('badge-recv',pendRecv);
+
+    // Empréstimos ativos
+    var activeLoans=loans.filter(function(l){return l.status!=='quitado';}).length;
+    setBadge('badge-emp',activeLoans);
+
+    // Para casas pendentes
+    var pendHw=hws.filter(function(h){return !h.done;}).length;
+    setBadge('badge-hw',pendHw);
+  }catch(e){}
+}
+updateNavBadges();
+// Atualiza badges ao voltar para o site
+document.addEventListener('visibilitychange',function(){if(!document.hidden)updateNavBadges();});
 </script>
 </body>
 </html>
