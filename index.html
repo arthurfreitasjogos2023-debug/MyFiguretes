@@ -527,10 +527,45 @@ body.album-fs .album-exit{display:inline-flex;}
 
 </style>
 </head>
-<body>
-<script>alert('ARQUIVO NOVO ✓ - versão 21');</script>
-<div style="background:red;color:white;font-size:20px;font-weight:bold;padding:16px;text-align:center;position:fixed;top:0;left:0;right:0;z-index:99999;">ARQUIVO NOVO - VERSÃO 21</div>
-<div style="height:60px;"></div>
+<body style="background:#efefef;color:#1a1a1a;">
+<script>
+!function(){
+  var s=document.createElement('style');
+  s.textContent=[
+    'html,body{background:#efefef!important;color:#1a1a1a!important;}',
+    '.window{background:#f2f2f2!important;}',
+    '.sidebar{background:#f7f7f7!important;border-right:1px solid rgba(0,0,0,.08)!important;}',
+    '.browser-bar{background:#ebebeb!important;border-bottom:1px solid rgba(0,0,0,.07)!important;}',
+    '.kpi{background:#ffffff!important;border:1px solid rgba(0,0,0,.07)!important;color:#1a1a1a!important;}',
+    '.kpi.feat{background:#1a1a1a!important;color:#fff!important;}',
+    '.kpi-label{color:#6b7280!important;}',
+    '.kpi .card-value,.kpi .kpi-val{color:#1a1a1a!important;}',
+    '.kpi.feat .card-value,.kpi.feat .kpi-val,.kpi.feat .kpi-label{color:#fff!important;}',
+    '.kpi-ic{background:#f3f4f6!important;}',
+    '.act-btn{background:#ffffff!important;border:1px solid rgba(0,0,0,.07)!important;}',
+    '.chart-card{background:#ffffff!important;border:1px solid rgba(0,0,0,.07)!important;}',
+    '.history-item,.loan-item,.credit-item{background:#ffffff!important;color:#1a1a1a!important;}',
+    '.nav-item{color:#6b7280!important;background:transparent!important;}',
+    '.nav-item.active{background:#1a1a1a!important;color:#fff!important;border-radius:10px!important;}',
+    '.nav-item:hover{background:#ffffff!important;color:#1a1a1a!important;}',
+    '.brand{background:#ffffff!important;}',
+    '.brand b{color:#1a1a1a!important;}',
+    '.modal,.confirm-modal{background:#ffffff!important;color:#1a1a1a!important;}',
+    '.head h1{color:#1a1a1a!important;-webkit-text-fill-color:#1a1a1a!important;background:none!important;}',
+    '.head .sub,.section-title,.kpi-sub{color:#6b7280!important;}',
+    '.side-card{background:#ffffff!important;border:1px solid rgba(0,0,0,.08)!important;}',
+    '.period-tab,.section-tab{background:#ffffff!important;color:#374151!important;border:1px solid rgba(0,0,0,.07)!important;}',
+    '.period-tab.active,.section-tab.active{background:#1a1a1a!important;color:#fff!important;}',
+    '.search-box,.sidebar-search{background:#ffffff!important;border:1px solid rgba(0,0,0,.08)!important;}',
+    '.work-item,.cal-item,.note-row,.ai-msg,.grade-card,.hw-card{background:#ffffff!important;color:#1a1a1a!important;}',
+    '.clock-pill{background:rgba(0,0,0,.05)!important;color:#374151!important;}',
+    '.page-back{background:#ffffff!important;color:#6b7280!important;}',
+    '.nav-sep{color:#b0b7c0!important;}',
+    '#toast{background:#1a1a1a!important;color:#fff!important;}',
+  ].join('');
+  document.head.appendChild(s);
+}();
+</script>
 
 <div class="window">
 <div class="browser-bar">
