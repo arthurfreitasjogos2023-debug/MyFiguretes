@@ -667,54 +667,95 @@ body.album-fs .album-exit{display:inline-flex;}
     c.id='bg-shader';
     c.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;';
     win.insertBefore(c,win.firstChild);
-
-    /* main area is transparent so canvas shows as background between cards */
     document.querySelectorAll('.main').forEach(function(el){el.style.background='transparent';});
 
-    var ctx=c.getContext('2d');
-    var W=0,H=0,prevW=0,prevH=0;
+    /* ── WebGL shader (ported from ShaderPlane React Three Fiber) ── */
+    var gl=c.getContext('webgl')||c.getContext('experimental-webgl');
+    if(!gl){ c.parentNode&&c.parentNode.removeChild(c); return; }
 
-    /* animated blob control points — higher contrast so the effect is visible */
-    var blobs=[
-      {ax:0.05,ay:0.08,bx:0.88,by:0.75,vx:0.00090,vy:0.00060,r:0.80,cols:'196,193,205'},
-      {ax:0.85,ay:0.05,bx:0.12,by:0.92,vx:0.00065,vy:0.00100,r:0.75,cols:'210,205,195'},
-      {ax:0.48,ay:0.02,bx:0.52,by:0.98,vx:0.00050,vy:0.00075,r:0.70,cols:'188,190,205'},
-      {ax:0.08,ay:0.88,bx:0.92,by:0.12,vx:0.00080,vy:0.00045,r:0.65,cols:'220,215,208'},
-      {ax:0.78,ay:0.52,bx:0.22,by:0.48,vx:0.00060,vy:0.00095,r:0.60,cols:'200,196,215'},
-      {ax:0.30,ay:0.35,bx:0.70,by:0.65,vx:0.00040,vy:0.00055,r:0.55,cols:'180,183,198'},
-    ];
-    var t=0;
+    var VS=[
+      'attribute vec2 a_pos;',
+      'uniform float time;',
+      'uniform float intensity;',
+      'varying vec2 vUv;',
+      'void main(){',
+      '  vUv = a_pos*0.5+0.5;',
+      /* subtle vertex wave — same formula as original but in screen space */
+      '  vec2 p = a_pos;',
+      '  p.y += sin(p.x*10.0+time)*0.04*intensity;',
+      '  p.x += cos(p.y*8.0+time*1.5)*0.02*intensity;',
+      '  gl_Position=vec4(p,0.0,1.0);',
+      '}'
+    ].join('\n');
 
-    function draw(){
-      if(!c.parentNode) return;
-      W=win.offsetWidth; H=win.offsetHeight;
-      if(W!==prevW||H!==prevH){c.width=prevW=W;c.height=prevH=H;}
-      if(!W||!H){requestAnimationFrame(draw);return;}
+    var FS=[
+      'precision mediump float;',
+      'uniform float time;',
+      'uniform float intensity;',
+      'uniform vec3 color1;',
+      'uniform vec3 color2;',
+      'varying vec2 vUv;',
+      'void main(){',
+      '  vec2 uv=vUv;',
+      /* animated noise — exact formula from original ShaderPlane */
+      '  float noise=sin(uv.x*20.0+time)*cos(uv.y*15.0+time*0.8);',
+      '  noise+=sin(uv.x*35.0-time*2.0)*cos(uv.y*25.0+time*1.2)*0.5;',
+      /* color mix */
+      '  vec3 col=mix(color1,color2,noise*0.5+0.5);',
+      '  col=mix(col,vec3(1.0),pow(abs(noise),2.0)*intensity*0.35);',
+      /* soft vignette — keep alpha=1 everywhere (edges not transparent) */
+      '  float vig=1.0-length(uv-0.5)*0.45;',
+      '  vig=clamp(vig,0.80,1.0);',
+      '  gl_FragColor=vec4(col*vig,1.0);',
+      '}'
+    ].join('\n');
 
-      /* base warm-white paper */
-      ctx.fillStyle='#eeecea';
-      ctx.fillRect(0,0,W,H);
-
-      /* draw each blob as a radial gradient */
-      blobs.forEach(function(b,i){
-        /* smooth sine-wave orbit between two anchor points */
-        var p=0.5+0.5*Math.sin(t*b.vx*(1+i*0.28));
-        var q=0.5+0.5*Math.cos(t*b.vy*(1+i*0.22));
-        var x=(b.ax*(1-p)+b.bx*p)*W;
-        var y=(b.ay*(1-q)+b.by*q)*H;
-        var rad=b.r*Math.max(W,H)*0.75;
-        var g=ctx.createRadialGradient(x,y,0,x,y,rad);
-        g.addColorStop(0,'rgba('+b.cols+',0.80)');
-        g.addColorStop(0.45,'rgba('+b.cols+',0.40)');
-        g.addColorStop(1,'rgba(238,236,234,0)');
-        ctx.fillStyle=g;
-        ctx.fillRect(0,0,W,H);
-      });
-
-      t+=1;
-      requestAnimationFrame(draw);
+    function mkShader(type,src){
+      var sh=gl.createShader(type);
+      gl.shaderSource(sh,src);
+      gl.compileShader(sh);
+      return gl.getShaderParameter(sh,gl.COMPILE_STATUS)?sh:null;
     }
-    draw();
+    var vs=mkShader(gl.VERTEX_SHADER,VS);
+    var fs=mkShader(gl.FRAGMENT_SHADER,FS);
+    if(!vs||!fs){c.parentNode&&c.parentNode.removeChild(c);return;}
+
+    var prog=gl.createProgram();
+    gl.attachShader(prog,vs); gl.attachShader(prog,fs);
+    gl.linkProgram(prog);
+    if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){c.parentNode&&c.parentNode.removeChild(c);return;}
+    gl.useProgram(prog);
+
+    /* full-screen quad — 2 triangles covering clip space [-1,1]² */
+    var buf=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+    var posLoc=gl.getAttribLocation(prog,'a_pos');
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc,2,gl.FLOAT,false,0,0);
+
+    var uTime=gl.getUniformLocation(prog,'time');
+    var uInt =gl.getUniformLocation(prog,'intensity');
+    var uC1  =gl.getUniformLocation(prog,'color1');
+    var uC2  =gl.getUniformLocation(prog,'color2');
+
+    /* color1 = soft lavender-gray  #c8c4d6  →  0.784 0.769 0.839
+       color2 = warm off-white      #f2efe8  →  0.949 0.937 0.910 */
+    gl.uniform3f(uC1, 0.784, 0.769, 0.839);
+    gl.uniform3f(uC2, 0.949, 0.937, 0.910);
+
+    var t0=performance.now(), prevW=0, prevH=0;
+    function render(){
+      if(!c.parentNode) return;
+      var W=win.offsetWidth, H=win.offsetHeight;
+      if(W!==prevW||H!==prevH){c.width=prevW=W;c.height=prevH=H;gl.viewport(0,0,W,H);}
+      var t=(performance.now()-t0)*0.001;
+      gl.uniform1f(uTime,t);
+      gl.uniform1f(uInt,1.0+Math.sin(t*2.0)*0.3);
+      gl.drawArrays(gl.TRIANGLES,0,6);
+      requestAnimationFrame(render);
+    }
+    render();
   }
 
   /* Run after DOM is parsed */
