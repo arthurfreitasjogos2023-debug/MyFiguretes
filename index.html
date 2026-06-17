@@ -5578,7 +5578,7 @@ function sidebarFilter(q){
 body{background:#efefef !important;}
 
 .window{
-  background:#ffffff !important;
+  background:transparent !important;
   border:1px solid rgba(0,0,0,.08) !important;
   box-shadow:0 8px 40px rgba(0,0,0,.08) !important;
 }
@@ -5599,7 +5599,7 @@ body{background:#efefef !important;}
 
 /* ── SIDEBAR ── */
 .sidebar{
-  background:#f7f7f7 !important;
+  background:rgba(247,247,247,0.92) !important;
   border-right:1px solid rgba(0,0,0,.07) !important;
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
@@ -5838,10 +5838,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)upda
     '  n+=sin(uv.x*35.0-uTime*2.0)*cos(uv.y*25.0+uTime*1.2)*0.5;',
     '  vec3 col=mix(uC1,uC2,n*0.5+0.5);',
     '  col=mix(col,vec3(1.0),pow(abs(n),2.0)*uInt);',
-    '  float g=1.0-length(uv-0.5)*2.0;',
-    '  g=max(g,0.0);',
-    '  g=pow(g,2.0);',
-    '  gl_FragColor=vec4(col*g,g*0.8);',
+    '  gl_FragColor=vec4(col,1.0);',
     '}'
   ].join('\n');
 
@@ -5892,9 +5889,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)upda
   gl.uniform3f(uC1,0.102,0.102,0.102);
   gl.uniform3f(uC2,1.0,1.0,1.0);
 
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-  gl.clearColor(0,0,0,0);
+  gl.clearColor(0.94,0.94,0.94,1);
 
   var count=idx.length, start=performance.now();
 
