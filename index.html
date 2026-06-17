@@ -45,7 +45,7 @@ input,textarea,select{font-family:inherit;}
 
 /* ===== WINDOW / BROWSER FRAME ===== */
 .window{max-width:1320px;margin:0 auto;background:var(--window);border:1px solid rgba(255,255,255,.07);border-radius:18px;overflow:hidden;box-shadow:0 40px 80px -30px rgba(0,0,0,.85);}
-.browser-bar{display:flex;align-items:center;gap:14px;padding:11px 16px;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.06);}
+.browser-bar{display:flex;align-items:center;gap:14px;padding:11px 16px;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.06);position:relative;z-index:1;}
 .dots{display:flex;gap:8px;}
 .dots i{width:12px;height:12px;border-radius:50%;display:block;}
 .dots i:nth-child(1){background:#ff5f57;} .dots i:nth-child(2){background:#febc2e;} .dots i:nth-child(3){background:#28c840;}
@@ -55,7 +55,7 @@ input,textarea,select{font-family:inherit;}
 .bar-right{display:flex;gap:16px;color:var(--muted-2);margin-left:auto;} .bar-right svg{width:17px;height:17px;}
 
 /* ===== APP GRID ===== */
-.app{display:grid;grid-template-columns:248px 1fr;}
+.app{display:grid;grid-template-columns:248px 1fr;position:relative;z-index:1;}
 
 /* ===== SIDEBAR ===== */
 .sidebar{background:var(--sidebar);border-right:1px solid var(--line);padding:20px 16px 18px;display:flex;flex-direction:column;min-height:860px;}
@@ -301,6 +301,7 @@ body{
   background:#06060e;
 }
 .window{
+  position:relative;
   background:#080808;
   border:1px solid rgba(255,255,255,.09);
   box-shadow:0 40px 80px -30px rgba(0,0,0,.95);
@@ -537,6 +538,56 @@ body.album-fs .album-exit{display:inline-flex;}
 <body>
 
 <div class="window">
+
+<!-- ═══════ ETHERAL SHADOW (vanilla port) ═══════ -->
+<!-- SVG filter: feTurbulence → hueRotate → matrix → 2× feDisplacementMap -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;">
+  <defs>
+    <filter id="esh-f" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+      <feTurbulence result="undulation" numOctaves="2" baseFrequency="0.0005 0.002" seed="0" type="turbulence"/>
+      <feColorMatrix id="esh-hue" in="undulation" type="hueRotate" values="180"/>
+      <feColorMatrix in="dist" result="circulation" type="matrix"
+        values="4 0 0 0 1
+                4 0 0 0 1
+                4 0 0 0 1
+                1 0 0 0 0"/>
+      <feDisplacementMap in="SourceGraphic" in2="circulation" scale="100" result="dist"/>
+      <feDisplacementMap in="dist" in2="undulation" scale="100" result="output"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- etheral shadow container — fills the window, behind all content -->
+<div id="esh-root" style="
+  position:absolute;inset:0;
+  pointer-events:none;z-index:0;
+  overflow:hidden;border-radius:inherit;
+">
+  <!-- displacement layer: inset -100px matches displacementScale=100 from the component -->
+  <div id="esh-inner" style="
+    position:absolute;
+    inset:-100px;
+    filter:url(#esh-f) blur(4px);
+  ">
+    <div id="esh-blob" style="
+      background-color:rgba(200,200,200,1);
+      mask-image:url('https://framerusercontent.com/images/ceBGguIpUU8luwByxuQz79t7To.png');
+      -webkit-mask-image:url('https://framerusercontent.com/images/ceBGguIpUU8luwByxuQz79t7To.png');
+      mask-size:cover;mask-position:center;mask-repeat:no-repeat;
+      -webkit-mask-size:cover;-webkit-mask-position:center;
+      width:100%;height:100%;
+    "></div>
+  </div>
+  <!-- noise overlay (opacity/2 = 0.5 from component) -->
+  <div style="
+    position:absolute;inset:0;
+    background-image:url('https://framerusercontent.com/images/g0QcWrxr87K0ufOxIUFBakwYA8.png');
+    background-size:240px;background-repeat:repeat;
+    opacity:0.5;
+  "></div>
+</div>
+<!-- ═══════ END ETHERAL SHADOW ═══════ -->
+
   <div class="app">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
@@ -5584,5 +5635,26 @@ updateNavBadges();
 document.addEventListener('visibilitychange',function(){if(!document.hidden)updateNavBadges();});
 </script>
 
+<!-- ═══════ ETHERAL SHADOW ANIMATION ═══════ -->
+<script>
+(function(){
+  var hueEl = document.getElementById('esh-hue');
+  if (!hueEl) return;
+  // Matches component: mapRange(speed=90, 1,100, 1000,50) = ~146ms → /25 = 5.84s per cycle
+  // 360 degrees / 5840ms = ~0.0616 deg/ms
+  var degPerMs = 360 / 5840;
+  var hue = 180;
+  var last = 0;
+  function tick(ts) {
+    var dt = last ? Math.min(ts - last, 50) : 16;
+    last = ts;
+    hue = (hue + degPerMs * dt) % 360;
+    hueEl.setAttribute('values', hue.toFixed(2));
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+<!-- ═══════ END ETHERAL SHADOW ANIMATION ═══════ -->
 </body>
 </html>
