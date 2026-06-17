@@ -533,12 +533,12 @@ body.album-fs .album-exit{display:inline-flex;}
   /* LAYER 1 — inject style tag (first line of defense) */
   var s=document.createElement('style');
   s.textContent=[
-    'html,body{background:#efefef!important;color:#1a1a1a!important;}',
-    '.window{background:#f2f2f2!important;}',
-    '.sidebar{background:#f7f7f7!important;border-right:1px solid rgba(0,0,0,.08)!important;}',
-    '.browser-bar{background:#ebebeb!important;border-bottom:1px solid rgba(0,0,0,.07)!important;}',
-    '.main{background:#efefef!important;}',
-    '.mobile-topbar{background:#f7f7f7!important;border-bottom:1px solid rgba(0,0,0,.08)!important;}',
+    'html,body{background:#eeecea!important;color:#1a1a1a!important;}',
+    '.window{background:#eeecea!important;}',
+    '.sidebar{background:#f5f4f2!important;border-right:1px solid rgba(0,0,0,.08)!important;}',
+    '.browser-bar{background:#eae8e6!important;border-bottom:1px solid rgba(0,0,0,.07)!important;}',
+    '.main{background:transparent!important;}',
+    '.mobile-topbar{background:#f5f4f2!important;border-bottom:1px solid rgba(0,0,0,.08)!important;}',
     '.kpi{background:#ffffff!important;border:1px solid rgba(0,0,0,.07)!important;color:#1a1a1a!important;}',
     '.kpi.feat{background:#1a1a1a!important;color:#fff!important;}',
     '.kpi-label{color:#6b7280!important;}',
@@ -578,15 +578,14 @@ body.album-fs .album-exit{display:inline-flex;}
 
   function _doLight(){
     /* body */
-    document.body.style.background='#efefef';
+    document.body.style.background='#eeecea';
     document.body.style.color='#1a1a1a';
 
     /* structural backgrounds */
-    _bg('.window','#f2f2f2');
-    _bg('.sidebar','#f7f7f7');
-    _bg('.browser-bar','#ebebeb');
-    _bg('.main','#efefef');
-    _bg('.mobile-topbar','#f7f7f7');
+    _bg('.window','#eeecea');
+    _bg('.sidebar','#f5f4f2');
+    _bg('.browser-bar','#eae8e6');
+    _bg('.mobile-topbar','#f5f4f2');
 
     /* nav items */
     document.querySelectorAll('.nav-item').forEach(function(el){
@@ -675,13 +674,14 @@ body.album-fs .album-exit{display:inline-flex;}
     var ctx=c.getContext('2d');
     var W=0,H=0,prevW=0,prevH=0;
 
-    /* animated blob control points */
+    /* animated blob control points — higher contrast so the effect is visible */
     var blobs=[
-      {ax:0.10,ay:0.18,bx:0.90,by:0.82,vx:0.00060,vy:0.00040,r:0.70,cols:[218,218,220]},
-      {ax:0.80,ay:0.12,bx:0.20,by:0.88,vx:0.00045,vy:0.00070,r:0.65,cols:[228,228,230]},
-      {ax:0.50,ay:0.05,bx:0.50,by:0.95,vx:0.00035,vy:0.00050,r:0.60,cols:[222,222,224]},
-      {ax:0.15,ay:0.80,bx:0.85,by:0.20,vx:0.00055,vy:0.00035,r:0.55,cols:[232,232,234]},
-      {ax:0.70,ay:0.50,bx:0.30,by:0.50,vx:0.00040,vy:0.00060,r:0.50,cols:[215,215,218]},
+      {ax:0.05,ay:0.08,bx:0.88,by:0.75,vx:0.00090,vy:0.00060,r:0.80,cols:'196,193,205'},
+      {ax:0.85,ay:0.05,bx:0.12,by:0.92,vx:0.00065,vy:0.00100,r:0.75,cols:'210,205,195'},
+      {ax:0.48,ay:0.02,bx:0.52,by:0.98,vx:0.00050,vy:0.00075,r:0.70,cols:'188,190,205'},
+      {ax:0.08,ay:0.88,bx:0.92,by:0.12,vx:0.00080,vy:0.00045,r:0.65,cols:'220,215,208'},
+      {ax:0.78,ay:0.52,bx:0.22,by:0.48,vx:0.00060,vy:0.00095,r:0.60,cols:'200,196,215'},
+      {ax:0.30,ay:0.35,bx:0.70,by:0.65,vx:0.00040,vy:0.00055,r:0.55,cols:'180,183,198'},
     ];
     var t=0;
 
@@ -691,22 +691,22 @@ body.album-fs .album-exit{display:inline-flex;}
       if(W!==prevW||H!==prevH){c.width=prevW=W;c.height=prevH=H;}
       if(!W||!H){requestAnimationFrame(draw);return;}
 
-      /* base */
-      ctx.fillStyle='#efefef';
+      /* base warm-white paper */
+      ctx.fillStyle='#eeecea';
       ctx.fillRect(0,0,W,H);
 
       /* draw each blob as a radial gradient */
       blobs.forEach(function(b,i){
-        /* lerp between two anchor points using sine wave */
-        var p=0.5+0.5*Math.sin(t*b.vx*(1+i*0.3));
-        var q=0.5+0.5*Math.cos(t*b.vy*(1+i*0.25));
+        /* smooth sine-wave orbit between two anchor points */
+        var p=0.5+0.5*Math.sin(t*b.vx*(1+i*0.28));
+        var q=0.5+0.5*Math.cos(t*b.vy*(1+i*0.22));
         var x=(b.ax*(1-p)+b.bx*p)*W;
         var y=(b.ay*(1-q)+b.by*q)*H;
-        var rad=b.r*Math.max(W,H)*0.65;
+        var rad=b.r*Math.max(W,H)*0.75;
         var g=ctx.createRadialGradient(x,y,0,x,y,rad);
-        g.addColorStop(0,'rgba('+b.cols[0]+','+b.cols[1]+','+b.cols[2]+',0.55)');
-        g.addColorStop(0.5,'rgba('+b.cols[0]+','+b.cols[1]+','+b.cols[2]+',0.25)');
-        g.addColorStop(1,'rgba(239,239,239,0)');
+        g.addColorStop(0,'rgba('+b.cols+',0.80)');
+        g.addColorStop(0.45,'rgba('+b.cols+',0.40)');
+        g.addColorStop(1,'rgba(238,236,234,0)');
         ctx.fillStyle=g;
         ctx.fillRect(0,0,W,H);
       });
