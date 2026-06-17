@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shader Effect</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#08080f;}
+
+/* ── EnergyRing (CSS port of the React component) ── */
+.rings{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.ring{
+  position:absolute;
+  border-radius:50%;
+  border:1.5px solid rgba(255,87,34,.60);
+  animation:spin 3s linear infinite, pulse 1.3s ease-in-out infinite alternate;
+}
+.ring:nth-child(2){
+  width:62vmin;height:62vmin;
+  border-color:rgba(255,110,50,.42);
+  animation-duration:4.8s,1.9s;
+  animation-delay:-.9s,-.4s;
+}
+.ring:nth-child(3){
+  width:86vmin;height:86vmin;
+  border-color:rgba(255,55,15,.28);
+  animation-duration:6.6s,2.6s;
+  animation-delay:-1.8s,-.8s;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulse{to{opacity:.18;border-color:rgba(255,87,34,.08);}}
+
+/* ── Canvas ── */
+canvas{position:fixed;inset:0;width:100%;height:100%;}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<!-- EnergyRings: 3 rings at different radii -->
+<div class="rings">
+  <div class="ring" style="width:40vmin;height:40vmin;"></div>
+  <div class="ring"></div>
+  <div class="ring"></div>
+</div>
+
+<script>
+!function(){
+  var c=document.getElementById('c');
+
+  /* ══════════════════════════════════════════════════════════
+     WebGL path — vertex + fragment shaders ported from
+     ShaderPlane (React Three Fiber original)
+  ══════════════════════════════════════════════════════════ */
+  var gl=c.getContext('webgl',{alpha:true,premultipliedAlpha:false})
+       ||c.getContext('experimental-webgl',{alpha:true,premultipliedAlpha:false});
+
+  if(gl){
+    /* Vertex shader — same sin/cos wave displacement as original */
+    var VS=[
+      'attribute vec2 a_pos;',
+      'uniform float time;',
+      'uniform float intensity;',
+      'varying vec2 vUv;',
+      'void main(){',
+      '  vUv = a_pos * 0.5 + 0.5;',
+      '  vec2 p = a_pos;',
+      '  p.y += sin(p.x * 10.0 + time) * 0.1 * intensity;',
+      '  p.x += cos(p.y * 8.0  + time * 1.5) * 0.05 * intensity;',
+      '  gl_Position = vec4(p, 0.0, 1.0);',
+      '}'
+    ].join('\n');
+
+    /* Fragment shader — exact original noise + color mix + glow */
+    var FS=[
+      'precision mediump float;',
+      'uniform float time;',
+      'uniform float intensity;',
+      'uniform vec3  color1;',
+      'uniform vec3  color2;',
+      'varying vec2  vUv;',
+      'void main(){',
+      '  vec2 uv = vUv;',
+      /* animated noise pattern (exact original) */
+      '  float noise  = sin(uv.x*20.0 + time)        * cos(uv.y*15.0 + time*0.8);',
+      '  noise += sin(uv.x*35.0 - time*2.0) * cos(uv.y*25.0 + time*1.2) * 0.5;',
+      /* color mix (exact original) */
+      '  vec3 color = mix(color1, color2, noise*0.5+0.5);',
+      '  color = mix(color, vec3(1.0), pow(abs(noise),2.0)*intensity);',
+      /* glow / circular vignette (exact original) */
+      '  float glow = 1.0 - length(uv-0.5)*2.0;',
+      '  glow = pow(glow, 2.0);',
+      '  gl_FragColor = vec4(color*glow, glow*0.8);',
+      '}'
+    ].join('\n');
+
+    function mkSh(type,src){
+      var sh=gl.createShader(type);
+      gl.shaderSource(sh,src);
+      gl.compileShader(sh);
+      return gl.getShaderParameter(sh,gl.COMPILE_STATUS)?sh:null;
+    }
+    var vs=mkSh(gl.VERTEX_SHADER,VS);
+    var fs=mkSh(gl.FRAGMENT_SHADER,FS);
+    if(!vs||!fs){fallback();return;}
+
+    var prog=gl.createProgram();
+    gl.attachShader(prog,vs);
+    gl.attachShader(prog,fs);
+    gl.linkProgram(prog);
+    if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){fallback();return;}
+
+    gl.useProgram(prog);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+
+    /* 32×32 subdivided plane — same as <planeGeometry args={[2,2,32,32]} /> */
+    var SEG=32, verts=[], idxs=[];
+    for(var iy=0;iy<=SEG;iy++)
+      for(var ix=0;ix<=SEG;ix++)
+        verts.push(-1+ix/SEG*2, -1+iy/SEG*2);
+    for(var iy=0;iy<SEG;iy++)
+      for(var ix=0;ix<SEG;ix++){
+        var a=iy*(SEG+1)+ix,b=a+1,d=a+(SEG+1),e=d+1;
+        idxs.push(a,b,d,b,e,d);
+      }
+
+    var vb=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,vb);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(verts),gl.STATIC_DRAW);
+
+    var ib=gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(idxs),gl.STATIC_DRAW);
+
+    var aPos=gl.getAttribLocation(prog,'a_pos');
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+
+    var uTime=gl.getUniformLocation(prog,'time');
+    var uInt =gl.getUniformLocation(prog,'intensity');
+    var uC1  =gl.getUniformLocation(prog,'color1');
+    var uC2  =gl.getUniformLocation(prog,'color2');
+
+    /* color1 = #ff5722 (orange-red)   color2 = #ffffff (white) — exact originals */
+    gl.uniform3f(uC1, 1.000, 0.341, 0.133);
+    gl.uniform3f(uC2, 1.000, 1.000, 1.000);
+
+    var t0=performance.now(), pW=0, pH=0;
+    (function loop(){
+      var W=innerWidth, H=innerHeight;
+      if(W!==pW||H!==pH){c.width=pW=W;c.height=pH=H;gl.viewport(0,0,W,H);}
+      var t=(performance.now()-t0)*0.001;
+      gl.clearColor(0,0,0,0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.uniform1f(uTime,t);
+      gl.uniform1f(uInt, 1.0+Math.sin(t*2.0)*0.3);
+      gl.drawElements(gl.TRIANGLES,idxs.length,gl.UNSIGNED_SHORT,0);
+      requestAnimationFrame(loop);
+    })();
+    return;
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     2D Canvas fallback — glowing orbs that approximate the
+     shader visually when WebGL is unavailable
+  ══════════════════════════════════════════════════════════ */
+  fallback();
+  function fallback(){
+    var ctx=c.getContext('2d');
+    if(!ctx) return;
+    var t=0, pW=0, pH=0;
+    (function draw(){
+      var W=innerWidth, H=innerHeight;
+      if(W!==pW||H!==pH){c.width=pW=W;c.height=pH=H;}
+
+      /* dark background */
+      ctx.fillStyle='#08080f';
+      ctx.fillRect(0,0,W,H);
+
+      /* three animated glow orbs simulating the shader */
+      var orbs=[
+        {fx:0.5+Math.sin(t*0.40)*0.22, fy:0.5+Math.cos(t*0.30)*0.18, r:0.42, col:'255,87,34',  op:0.70},
+        {fx:0.5+Math.cos(t*0.55)*0.28, fy:0.5+Math.sin(t*0.38)*0.22, r:0.32, col:'255,160,80', op:0.55},
+        {fx:0.5+Math.sin(t*0.28)*0.18, fy:0.5+Math.cos(t*0.48)*0.28, r:0.24, col:'255,230,200',op:0.45},
+      ];
+      orbs.forEach(function(o){
+        var cx=o.fx*W, cy=o.fy*H, rad=o.r*Math.min(W,H);
+        var g=ctx.createRadialGradient(cx,cy,0,cx,cy,rad);
+        g.addColorStop(0,  'rgba('+o.col+','+o.op+')');
+        g.addColorStop(0.45,'rgba('+o.col+','+(o.op*0.3)+')');
+        g.addColorStop(1,  'rgba('+o.col+',0)');
+        ctx.fillStyle=g;
+        ctx.fillRect(0,0,W,H);
+      });
+
+      t+=0.016;
+      requestAnimationFrame(draw);
+    })();
+  }
+}();
+</script>
+</body>
+</html>
