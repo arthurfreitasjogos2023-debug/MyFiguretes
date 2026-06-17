@@ -534,7 +534,7 @@ body.album-fs .album-exit{display:inline-flex;}
   var s=document.createElement('style');
   s.textContent=[
     'html,body{background:#eeecea!important;color:#1a1a1a!important;}',
-    '.window{background:#eeecea!important;}',
+    '.window{background:transparent!important;}',
     '.sidebar{background:#f5f4f2!important;border-right:1px solid rgba(0,0,0,.08)!important;}',
     '.browser-bar{background:#eae8e6!important;border-bottom:1px solid rgba(0,0,0,.07)!important;}',
     '.main{background:transparent!important;}',
@@ -582,7 +582,7 @@ body.album-fs .album-exit{display:inline-flex;}
     document.body.style.color='#1a1a1a';
 
     /* structural backgrounds */
-    _bg('.window','#eeecea');
+    _bg('.window','transparent');
     _bg('.sidebar','#f5f4f2');
     _bg('.browser-bar','#eae8e6');
     _bg('.mobile-topbar','#f5f4f2');
@@ -658,6 +658,7 @@ body.album-fs .album-exit{display:inline-flex;}
     if(!win||document.getElementById('bg-shader')) return;
 
     win.style.position='relative';
+    win.style.background='transparent'; /* canvas replaces window background */
     var bar=win.querySelector('.browser-bar');
     var app=win.querySelector('.app');
     if(bar){bar.style.position='relative';bar.style.zIndex='2';}
@@ -669,93 +670,100 @@ body.album-fs .album-exit{display:inline-flex;}
     win.insertBefore(c,win.firstChild);
     document.querySelectorAll('.main').forEach(function(el){el.style.background='transparent';});
 
-    /* ── WebGL shader (ported from ShaderPlane React Three Fiber) ── */
+    /* ── Try WebGL first ── */
     var gl=c.getContext('webgl')||c.getContext('experimental-webgl');
-    if(!gl){ c.parentNode&&c.parentNode.removeChild(c); return; }
 
-    var VS=[
-      'attribute vec2 a_pos;',
-      'uniform float time;',
-      'uniform float intensity;',
-      'varying vec2 vUv;',
-      'void main(){',
-      '  vUv = a_pos*0.5+0.5;',
-      /* subtle vertex wave — same formula as original but in screen space */
-      '  vec2 p = a_pos;',
-      '  p.y += sin(p.x*10.0+time)*0.04*intensity;',
-      '  p.x += cos(p.y*8.0+time*1.5)*0.02*intensity;',
-      '  gl_Position=vec4(p,0.0,1.0);',
-      '}'
-    ].join('\n');
-
-    var FS=[
-      'precision mediump float;',
-      'uniform float time;',
-      'uniform float intensity;',
-      'uniform vec3 color1;',
-      'uniform vec3 color2;',
-      'varying vec2 vUv;',
-      'void main(){',
-      '  vec2 uv=vUv;',
-      /* animated noise — exact formula from original ShaderPlane */
-      '  float noise=sin(uv.x*20.0+time)*cos(uv.y*15.0+time*0.8);',
-      '  noise+=sin(uv.x*35.0-time*2.0)*cos(uv.y*25.0+time*1.2)*0.5;',
-      /* color mix */
-      '  vec3 col=mix(color1,color2,noise*0.5+0.5);',
-      '  col=mix(col,vec3(1.0),pow(abs(noise),2.0)*intensity*0.35);',
-      /* soft vignette — keep alpha=1 everywhere (edges not transparent) */
-      '  float vig=1.0-length(uv-0.5)*0.45;',
-      '  vig=clamp(vig,0.80,1.0);',
-      '  gl_FragColor=vec4(col*vig,1.0);',
-      '}'
-    ].join('\n');
-
-    function mkShader(type,src){
-      var sh=gl.createShader(type);
-      gl.shaderSource(sh,src);
-      gl.compileShader(sh);
-      return gl.getShaderParameter(sh,gl.COMPILE_STATUS)?sh:null;
+    if(gl){
+      var VS=[
+        'attribute vec2 a_pos;',
+        'uniform float time;uniform float intensity;',
+        'varying vec2 vUv;',
+        'void main(){',
+        '  vUv=a_pos*0.5+0.5;',
+        '  vec2 p=a_pos;',
+        '  p.y+=sin(p.x*10.0+time)*0.04*intensity;',
+        '  p.x+=cos(p.y*8.0+time*1.5)*0.02*intensity;',
+        '  gl_Position=vec4(p,0.0,1.0);',
+        '}'
+      ].join('\n');
+      var FS=[
+        'precision mediump float;',
+        'uniform float time;uniform float intensity;',
+        'uniform vec3 color1;uniform vec3 color2;',
+        'varying vec2 vUv;',
+        'void main(){',
+        '  vec2 uv=vUv;',
+        '  float noise=sin(uv.x*20.0+time)*cos(uv.y*15.0+time*0.8);',
+        '  noise+=sin(uv.x*35.0-time*2.0)*cos(uv.y*25.0+time*1.2)*0.5;',
+        '  vec3 col=mix(color1,color2,noise*0.5+0.5);',
+        '  col=mix(col,vec3(1.0),pow(abs(noise),2.0)*intensity*0.35);',
+        '  float vig=clamp(1.0-length(uv-0.5)*0.45,0.80,1.0);',
+        '  gl_FragColor=vec4(col*vig,1.0);',
+        '}'
+      ].join('\n');
+      function mkSh(type,src){var sh=gl.createShader(type);gl.shaderSource(sh,src);gl.compileShader(sh);return gl.getShaderParameter(sh,gl.COMPILE_STATUS)?sh:null;}
+      var vs=mkSh(gl.VERTEX_SHADER,VS), fs=mkSh(gl.FRAGMENT_SHADER,FS);
+      if(vs&&fs){
+        var prog=gl.createProgram();
+        gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);
+        if(gl.getProgramParameter(prog,gl.LINK_STATUS)){
+          gl.useProgram(prog);
+          var buf=gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+          gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+          var aPos=gl.getAttribLocation(prog,'a_pos');
+          gl.enableVertexAttribArray(aPos);
+          gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+          var uT=gl.getUniformLocation(prog,'time'),uI=gl.getUniformLocation(prog,'intensity'),uC1=gl.getUniformLocation(prog,'color1'),uC2=gl.getUniformLocation(prog,'color2');
+          gl.uniform3f(uC1,0.784,0.769,0.839); /* #c8c4d6 lavender-gray */
+          gl.uniform3f(uC2,0.949,0.937,0.910); /* #f2efe8 warm off-white */
+          var t0=performance.now(),pW=0,pH=0;
+          (function rGL(){
+            if(!c.parentNode) return;
+            var W=win.offsetWidth,H=win.offsetHeight;
+            if(W!==pW||H!==pH){c.width=pW=W;c.height=pH=H;gl.viewport(0,0,W,H);}
+            var t=(performance.now()-t0)*0.001;
+            gl.uniform1f(uT,t);gl.uniform1f(uI,1.0+Math.sin(t*2.0)*0.3);
+            gl.drawArrays(gl.TRIANGLES,0,6);
+            requestAnimationFrame(rGL);
+          })();
+          return; /* WebGL running — done */
+        }
+      }
     }
-    var vs=mkShader(gl.VERTEX_SHADER,VS);
-    var fs=mkShader(gl.FRAGMENT_SHADER,FS);
-    if(!vs||!fs){c.parentNode&&c.parentNode.removeChild(c);return;}
 
-    var prog=gl.createProgram();
-    gl.attachShader(prog,vs); gl.attachShader(prog,fs);
-    gl.linkProgram(prog);
-    if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){c.parentNode&&c.parentNode.removeChild(c);return;}
-    gl.useProgram(prog);
-
-    /* full-screen quad — 2 triangles covering clip space [-1,1]² */
-    var buf=gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
-    var posLoc=gl.getAttribLocation(prog,'a_pos');
-    gl.enableVertexAttribArray(posLoc);
-    gl.vertexAttribPointer(posLoc,2,gl.FLOAT,false,0,0);
-
-    var uTime=gl.getUniformLocation(prog,'time');
-    var uInt =gl.getUniformLocation(prog,'intensity');
-    var uC1  =gl.getUniformLocation(prog,'color1');
-    var uC2  =gl.getUniformLocation(prog,'color2');
-
-    /* color1 = soft lavender-gray  #c8c4d6  →  0.784 0.769 0.839
-       color2 = warm off-white      #f2efe8  →  0.949 0.937 0.910 */
-    gl.uniform3f(uC1, 0.784, 0.769, 0.839);
-    gl.uniform3f(uC2, 0.949, 0.937, 0.910);
-
-    var t0=performance.now(), prevW=0, prevH=0;
-    function render(){
+    /* ── 2D canvas fallback (Mi Browser fileprovider, no WebGL) ── */
+    var ctx=c.getContext('2d');
+    if(!ctx) return;
+    /* lavender-gray blobs on warm off-white — clearly visible contrast */
+    var blobs=[
+      {ax:0.05,ay:0.08,bx:0.85,by:0.72,sx:0.0009,sy:0.0006,r:0.80,rgb:'200,196,214',op:0.82},
+      {ax:0.88,ay:0.05,bx:0.12,by:0.90,sx:0.0007,sy:0.0010,r:0.75,rgb:'182,178,205',op:0.78},
+      {ax:0.50,ay:0.02,bx:0.50,by:0.98,sx:0.0005,sy:0.0008,r:0.70,rgb:'215,210,228',op:0.72},
+      {ax:0.08,ay:0.88,bx:0.92,by:0.12,sx:0.0008,sy:0.0005,r:0.65,rgb:'192,188,215',op:0.76},
+      {ax:0.75,ay:0.50,bx:0.25,by:0.50,sx:0.0006,sy:0.0009,r:0.60,rgb:'208,204,224',op:0.70},
+      {ax:0.30,ay:0.32,bx:0.70,by:0.68,sx:0.0004,sy:0.0006,r:0.55,rgb:'175,172,198',op:0.68},
+    ];
+    var t2=0,pW2=0,pH2=0;
+    (function r2D(){
       if(!c.parentNode) return;
-      var W=win.offsetWidth, H=win.offsetHeight;
-      if(W!==prevW||H!==prevH){c.width=prevW=W;c.height=prevH=H;gl.viewport(0,0,W,H);}
-      var t=(performance.now()-t0)*0.001;
-      gl.uniform1f(uTime,t);
-      gl.uniform1f(uInt,1.0+Math.sin(t*2.0)*0.3);
-      gl.drawArrays(gl.TRIANGLES,0,6);
-      requestAnimationFrame(render);
-    }
-    render();
+      var W=win.offsetWidth,H=win.offsetHeight;
+      if(W!==pW2||H!==pH2){c.width=pW2=W;c.height=pH2=H;}
+      if(!W||!H){requestAnimationFrame(r2D);return;}
+      ctx.fillStyle='#f2efe8'; ctx.fillRect(0,0,W,H);
+      blobs.forEach(function(b,i){
+        var p=0.5+0.5*Math.sin(t2*b.sx*(1+i*0.28));
+        var q=0.5+0.5*Math.cos(t2*b.sy*(1+i*0.22));
+        var x=(b.ax*(1-p)+b.bx*p)*W, y=(b.ay*(1-q)+b.by*q)*H;
+        var rad=b.r*Math.max(W,H)*0.80;
+        var g=ctx.createRadialGradient(x,y,0,x,y,rad);
+        g.addColorStop(0,'rgba('+b.rgb+','+b.op+')');
+        g.addColorStop(0.5,'rgba('+b.rgb+','+(b.op*0.35)+')');
+        g.addColorStop(1,'rgba(242,239,232,0)');
+        ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+      });
+      t2+=1; requestAnimationFrame(r2D);
+    })();
   }
 
   /* Run after DOM is parsed */
