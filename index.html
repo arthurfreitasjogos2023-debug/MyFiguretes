@@ -28,7 +28,13 @@ body{
   font-family:var(--font);color:var(--text);
   background:#000;
   min-height:100vh;padding:26px;-webkit-font-smoothing:antialiased;
-  filter:grayscale(1);
+}
+/* Grayscale via backdrop-filter overlay — NÃO quebra position:fixed dos modais/toasts */
+body::after{
+  content:'';position:fixed;inset:0;
+  backdrop-filter:grayscale(1);
+  -webkit-backdrop-filter:grayscale(1);
+  pointer-events:none;z-index:99999;
 }
 body.modal-locked{position:fixed;width:100%;overflow:hidden;}
 svg{display:block;}
