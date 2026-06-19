@@ -540,6 +540,16 @@ body.album-fs .album-exit{display:inline-flex;}
 .hw-btn-go{background:var(--page-accent-grad);color:#fff;border:0;}
 .hw-btn-go:active,.hw-btn-ghost:active{transform:scale(.98);}
 
+/* ===== KPI MAIN CARDS (Saldo Total + Gastos Total) ===== */
+.kpis-main{grid-template-columns:1fr 1fr!important;gap:14px!important;}
+.kpi-big{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:20px 18px!important;min-height:90px;}
+.kpi-big-inner{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0;}
+.kpi-big-label{font-size:10.5px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.45);line-height:1;}
+.kpi-big-val{font-size:26px!important;font-weight:800!important;letter-spacing:-.5px;line-height:1.1;color:#fff!important;}
+.kpi-big-icon{flex-shrink:0;margin-top:2px;}
+.kpi-big-icon svg{width:42px;height:14px;display:block;}
+@media(max-width:380px){.kpis-main{grid-template-columns:1fr!important;}.kpi-big-val{font-size:22px!important;}}
+
 </style>
 </head>
 <body style="background:#141418;color:#f0f0f0;">
@@ -646,8 +656,9 @@ body.album-fs .album-exit{display:inline-flex;}
     /* KPI cards */
     document.querySelectorAll('.kpi').forEach(function(el){
       if(el.classList.contains('feat')){
-        el.style.background='#1a1a1a';el.style.color='#fff';
-        el.querySelectorAll('.kpi-label,.kpi-val,.card-value,.kpi-sub').forEach(function(c){c.style.color='#fff';});
+        el.style.background='rgba(20,20,28,0.90)';el.style.color='#fff';
+        el.querySelectorAll('.kpi-label,.kpi-val,.card-value,.kpi-sub,.kpi-big-val').forEach(function(c){c.style.color='#fff';});
+        el.querySelectorAll('.kpi-big-label').forEach(function(c){c.style.color='rgba(255,255,255,.42)';});
       } else {
         el.style.background='#fff';el.style.color='#1a1a1a';el.style.border='1px solid rgba(0,0,0,.07)';
         el.querySelectorAll('.kpi-label,.kpi-sub').forEach(function(c){c.style.color='#6b7280';});
@@ -886,56 +897,34 @@ body.album-fs .album-exit{display:inline-flex;}
         <div class="page active" id="page-geral" data-title="Dashboard" data-sub="Resumo financeiro">
 <!-- KPI CARDS -->
         <section id="sec-top">
-          <div class="kpis">
-            <div class="kpi feat" onclick="openMoneyView('total')" style="cursor:pointer;">
-              <div class="kpi-ic">💰</div>
-              <div class="kpi-label">Saldo Total</div>
-              <div class="card-value" id="val-total">R$ 0,00</div>
-              <div class="kpi-sub">Toque para ver entradas</div>
+          <div class="kpis kpis-main">
+            <div class="kpi feat kpi-big" onclick="openMoneyView('total')" style="cursor:pointer;">
+              <div class="kpi-big-inner">
+                <div class="kpi-big-label">SALDO TOTAL</div>
+                <div class="card-value kpi-big-val" id="val-total">R$ 0,00</div>
+              </div>
+              <div class="kpi-big-icon"><svg viewBox="0 0 40 14" fill="none"><rect y="0" width="40" height="6" rx="3" fill="#f97316"/><rect y="8" width="28" height="6" rx="3" fill="#f97316"/></svg></div>
             </div>
-            <div class="kpi" onclick="openMoneyView('profit')" style="cursor:pointer;">
-              <div class="kpi-ic">📈</div>
-              <div class="kpi-label">Lucro Total</div>
-              <div class="card-value green" id="val-profit">R$ 0,00</div>
-              <div class="kpi-sub">Lucro acumulado</div>
-            </div>
-            <div class="kpi" onclick="openEmpView('loans')" style="cursor:pointer;">
-              <div class="kpi-ic">🏦</div>
-              <div class="kpi-label">Empréstimos</div>
-              <div class="kpi-val purple" id="val-loans">R$ 0,00</div>
-              <div class="kpi-sub" id="val-loans-count">0 ativos</div>
-            </div>
-            <div class="kpi" onclick="openEmpView('credits')" style="cursor:pointer;">
-              <div class="kpi-ic">💳</div>
-              <div class="kpi-label">Crédito Devido</div>
-              <div class="kpi-val cyan" id="val-credit">R$ 0,00</div>
-              <div class="kpi-sub" id="val-credit-count">0 compras ativas</div>
-            </div>
-            <div class="kpi" onclick="showPage('gastos')" style="cursor:pointer;">
-              <div class="kpi-ic">🛒</div>
-              <div class="kpi-label">Gastos Vendas</div>
-              <div class="kpi-val" id="val-sale-expense" style="color:var(--orange)">R$ 0,00</div>
-              <div class="kpi-sub" id="val-sale-expense-count">0 registros</div>
-            </div>
-            <div class="kpi" onclick="showPage('despesas')" style="cursor:pointer;">
-              <div class="kpi-ic">💸</div>
-              <div class="kpi-label">Gastos Despesas</div>
-              <div class="kpi-val red" id="val-despesa">R$ 0,00</div>
-              <div class="kpi-sub" id="val-despesa-count">0 registros</div>
-            </div>
-            <div class="kpi" onclick="showPage('recv')" style="cursor:pointer;">
-              <div class="kpi-ic">📥</div>
-              <div class="kpi-label">A Receber</div>
-              <div class="kpi-val teal" id="val-recv">R$ 0,00</div>
-              <div class="kpi-sub" id="val-recv-count">0 pendentes</div>
-            </div>
-            <div class="kpi" onclick="showPage('blocked')" style="cursor:pointer;">
-              <div class="kpi-ic">🔒</div>
-              <div class="kpi-label">Saldo Bloqueado</div>
-              <div class="kpi-val" id="val-blocked" style="color:#f5a524;">R$ 0,00</div>
-              <div class="kpi-sub" id="val-blocked-count">0 vendas</div>
+            <div class="kpi feat kpi-big" onclick="showPage('despesas')" style="cursor:pointer;">
+              <div class="kpi-big-inner">
+                <div class="kpi-big-label">GASTOS TOTAL</div>
+                <div class="card-value kpi-big-val" id="val-gastos-total">R$ 0,00</div>
+              </div>
+              <div class="kpi-big-icon"><svg viewBox="0 0 40 14" fill="none"><rect y="0" width="40" height="6" rx="3" fill="#f97316"/><rect y="8" width="28" height="6" rx="3" fill="#f97316"/></svg></div>
             </div>
           </div>
+          <!-- valores ocultos mantidos para cálculos internos -->
+          <span id="val-profit" style="display:none"></span>
+          <span id="val-sale-expense" style="display:none"></span>
+          <span id="val-sale-expense-count" style="display:none"></span>
+          <span id="val-despesa" style="display:none"></span>
+          <span id="val-despesa-count" style="display:none"></span>
+          <span id="val-recv" style="display:none"></span>
+          <span id="val-recv-count" style="display:none"></span>
+          <span id="val-blocked" style="display:none"></span>
+          <span id="val-blocked-count" style="display:none"></span>
+          <span id="val-loans" style="display:none"></span>
+          <span id="val-loans-count" style="display:none"></span>
         </section>
 
         <!-- AÇÕES -->
@@ -4013,6 +4002,7 @@ function refreshUI(){
   var sec=document.getElementById('val-sale-expense-count');if(sec)sec.textContent=(totals.saleExpenseCount||0)+' registro'+((totals.saleExpenseCount||0)!==1?'s':'');
   var de=document.getElementById('val-despesa');if(de)de.textContent=brl(totals.despesa);
   var dec=document.getElementById('val-despesa-count');if(dec)dec.textContent=(totals.despesaCount||0)+' registro'+((totals.despesaCount||0)!==1?'s':'');
+  var gt=document.getElementById('val-gastos-total');if(gt)gt.textContent=brl((totals.despesa||0)+(totals.saleExpense||0));
   var oldExp=document.getElementById('val-expense');if(oldExp)oldExp.textContent=brl(totals.expense);
   var oldExpC=document.getElementById('val-expense-count');if(oldExpC)oldExpC.textContent=((totals.despesaCount||0)+(totals.saleExpenseCount||0))+' registro'+(((totals.despesaCount||0)+(totals.saleExpenseCount||0))!==1?'s':'');
 
