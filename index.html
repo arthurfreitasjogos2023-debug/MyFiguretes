@@ -541,31 +541,24 @@ body.album-fs .album-exit{display:inline-flex;}
 .hw-btn-go:active,.hw-btn-ghost:active{transform:scale(.98);}
 
 /* ===== FAB BUTTONS ===== */
-.orb-fab{background:none;border:none;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:center;gap:10px;}
-.orb-fab-circle{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.15);transition:transform .18s,box-shadow .18s;}
-.orb-fab-circle svg{width:26px;height:26px;stroke:#fff;}
-.orb-fab-blue{background:rgba(59,130,246,.18);box-shadow:0 0 0 0 rgba(59,130,246,0);}
-.orb-fab-red{background:rgba(248,113,122,.18);box-shadow:0 0 0 0 rgba(248,113,122,0);}
-.orb-fab:active .orb-fab-circle{transform:scale(.92);}
-.orb-fab-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.55);}
+.orb-fab{background:none;border:none;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:center;gap:9px;}
+.orb-fab-circle{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);transition:transform .15s;}
+.orb-fab-circle svg{width:22px;height:22px;stroke:rgba(255,255,255,.75);}
+.orb-fab:active .orb-fab-circle{transform:scale(.93);}
+.orb-fab-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.02em;}
 
 /* ===== ORBITAL MENU OVERLAY ===== */
-#orbital-overlay{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;}
+#orbital-overlay{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:transparent;}
 #orbital-overlay.orb-open{display:flex;}
-.orb-ring{position:relative;width:320px;height:320px;}
-.orb-ring-border{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.12);animation:orb-spin 14s linear infinite;}
-.orb-ring-border::after{content:'';position:absolute;top:-4px;left:50%;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35);transform:translateX(-50%);}
+.orb-ring{position:relative;width:300px;height:300px;}
+.orb-ring-border{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.08);animation:orb-spin 16s linear infinite;}
 @keyframes orb-spin{to{transform:rotate(360deg);}}
-.orb-core{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#3b82f6,#06b6d4);animation:orb-glow 2s ease-in-out infinite;display:flex;align-items:center;justify-content:center;z-index:10;}
-.orb-core::before{content:'';position:absolute;width:72px;height:72px;border-radius:50%;border:1.5px solid rgba(255,255,255,.18);animation:orb-ping 1.8s ease-out infinite;}
-.orb-core::after{content:'';position:absolute;width:90px;height:90px;border-radius:50%;border:1px solid rgba(255,255,255,.08);animation:orb-ping 1.8s ease-out .6s infinite;}
-.orb-core-dot{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.85);}
-@keyframes orb-glow{0%,100%{box-shadow:0 0 18px rgba(124,58,237,.6);}50%{box-shadow:0 0 36px rgba(124,58,237,.9),0 0 50px rgba(59,130,246,.4);}}
-@keyframes orb-ping{0%{opacity:.7;transform:scale(1);}100%{opacity:0;transform:scale(1.35);}}
-.orb-node{position:absolute;top:50%;left:50%;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;}
-.orb-node-btn{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:19px;transition:transform .2s,background .2s,border-color .2s,box-shadow .2s;}
-.orb-node:active .orb-node-btn{transform:scale(.88);background:rgba(255,255,255,.22);box-shadow:0 0 18px rgba(255,255,255,.25);}
-.orb-node-label{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.65);white-space:nowrap;}
+.orb-core{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;z-index:10;cursor:pointer;}
+.orb-core svg{width:18px;height:18px;stroke:rgba(255,255,255,.5);}
+.orb-node{position:absolute;top:50%;left:50%;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;}
+.orb-node-btn{width:44px;height:44px;border-radius:50%;background:rgba(20,20,28,.85);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;font-size:18px;transition:transform .15s,border-color .15s;}
+.orb-node:active .orb-node-btn{transform:scale(.88);border-color:rgba(255,255,255,.4);}
+.orb-node-label{font-size:9px;font-weight:600;color:rgba(255,255,255,.55);white-space:nowrap;letter-spacing:.03em;}
 
 /* ===== KPI MAIN CARDS (Saldo Total + Gastos Total) ===== */
 .kpis-main{grid-template-columns:1fr!important;gap:14px!important;}
@@ -6044,7 +6037,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)upda
 <div id="orbital-overlay" onclick="closeOrbital(event)">
   <div class="orb-ring">
     <div class="orb-ring-border"></div>
-    <div class="orb-core"><div class="orb-core-dot"></div></div>
+    <div class="orb-core" onclick="closeOrbital()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
     <div id="orb-nodes"></div>
   </div>
 </div>
@@ -6086,10 +6079,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)upda
   window.openOrbital=function(type){
     var ov=document.getElementById('orbital-overlay');
     var container=document.getElementById('orb-nodes');
-    /* Mi Browser safe: inline styles */
-    ov.style.background='rgba(0,0,0,0.88)';
-    ov.style.backdropFilter='blur(10px)';
-    ov.style.webkitBackdropFilter='blur(10px)';
+    ov.style.background='transparent';
 
     container.innerHTML=(_groups[type]||[]).map(function(n){
       return '<div class="orb-node" onclick="orbClick(event,\''+n.modal+'\')"><div class="orb-node-btn">'+n.icon+'</div><div class="orb-node-label">'+n.label+'</div></div>';
@@ -6103,7 +6093,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)upda
   };
 
   window.closeOrbital=function(e){
-    if(e && e.target!==document.getElementById('orbital-overlay')) return;
+    if(e && e.target!==document.getElementById('orbital-overlay') && e.target!==document.querySelector('.orb-core')) return;
     var ov=document.getElementById('orbital-overlay');
     ov.classList.remove('orb-open');
     if(_raf){cancelAnimationFrame(_raf);_raf=null;}
